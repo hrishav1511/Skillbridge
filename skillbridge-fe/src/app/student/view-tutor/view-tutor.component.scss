@@ -1,0 +1,612 @@
+/* ---------- Tokens ---------- */
+$brand: #4f46e5;
+$brand-2: #6366f1;
+$brand-soft: #eef2ff;
+$ink: #0f172a;
+$ink-2: #1e293b;
+$muted: #64748b;
+$soft: #94a3b8;
+$line: #e2e8f0;
+$line-2: #eef2f7;
+$bg: #f8fafc;
+$card: #ffffff;
+$radius-lg: 20px;
+$radius-md: 14px;
+$radius-sm: 10px;
+$shadow-sm: 0 1px 2px rgba(15, 23, 42, .04), 0 1px 3px rgba(15, 23, 42, .06);
+$shadow-md: 0 10px 30px rgba(15, 23, 42, .06);
+$shadow-lg: 0 20px 45px rgba(15, 23, 42, .08);
+
+/* ---------- Layout ---------- */
+.profile-container {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 0 1.25rem 3rem;
+  color: $ink;
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ---------- Banner ---------- */
+.profile-banner {
+  position: relative;
+  height: 180px;
+  border-radius: $radius-lg $radius-lg 0 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 120% at 0% 0%, #6366f1 0%, transparent 55%),
+    radial-gradient(120% 120% at 100% 100%, #06b6d4 0%, transparent 55%),
+    linear-gradient(135deg, #4338ca, #0ea5e9);
+}
+
+.profile-banner__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-banner__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0) 40%, rgba(15, 23, 42, .35) 100%);
+  pointer-events: none;
+}
+
+/* ---------- Profile card ---------- */
+.profile-card {
+  background: $card;
+  padding: 2rem 2rem 1.75rem;
+  border-radius: 0 0 $radius-lg $radius-lg;
+  box-shadow: $shadow-md;
+  border: 1px solid $line-2;
+  border-top: 0;
+  position: relative;
+}
+
+.profile-card__top {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem;
+  align-items: flex-end;
+  margin-top: -4.5rem;
+}
+
+.avatar-container {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.profile-avatar {
+  width: 128px;
+  height: 128px;
+  border: 5px solid $card;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e0e7ff, #f1f5f9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $brand;
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, .14);
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-bottom: .5rem;
+  position: relative;
+  min-width: 0;
+}
+
+.profile-header__name {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.profile-header h2 {
+  margin: 0;
+  color: $ink;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+
+.verified-dot {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: $brand;
+  color: #fff;
+}
+
+.role-badge {
+  display: inline-block;
+  margin: .5rem 0 0;
+  padding: .3rem .7rem;
+  border-radius: 999px;
+  background: $brand-soft;
+  color: $brand;
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+/*
+ * These buttons used to be positioned absolutely at fixed offsets, which put
+ * Reviews and Report at the same coordinates so the later one covered the
+ * earlier one. They now flow inside .profile-actions.
+ */
+.profile-actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .5rem;
+}
+
+.row-action {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  height: 38px;
+  padding: 0 .95rem;
+  border-radius: 10px;
+  border: 1px solid $line;
+  background: $card;
+  color: $ink-2;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+  transition: all .15s ease;
+
+  &:hover:not(:disabled) {
+    background: $brand;
+    border-color: $brand;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(79, 70, 229, .28);
+  }
+
+  &:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+}
+.review-action{
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  height: 38px;
+  padding: 0 .95rem;
+  border-radius: 10px;
+  border: 1px solid $line;
+  background: $card;
+  color: $ink-2;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+  transition: all .15s ease;
+
+  &:hover:not(:disabled) {
+    background: $brand;
+    border-color: $brand;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(79, 70, 229, .28);
+  }
+
+  &:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background: $line-2;
+  margin: 1.75rem 0 1.5rem;
+}
+
+/* ---------- Detail grid ---------- */
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .85rem;
+}
+
+.detail-item {
+  padding: 1rem 1.1rem;
+  border-radius: $radius-md;
+  background: #fbfcfe;
+  border: 1px solid $line-2;
+  transition: border-color .15s ease, background .15s ease;
+
+  &:hover {
+    border-color: #dbe3f0;
+    background: #fff;
+  }
+
+  &--wide {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    display: block;
+    font-size: .7rem;
+    font-weight: 600;
+    color: $soft;
+    margin-bottom: .4rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  p {
+    margin: 0;
+    font-size: .94rem;
+    color: $ink-2;
+    font-weight: 500;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+}
+
+/* ---------- Services ---------- */
+.services-section {
+  margin-top: 2.25rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.1rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: $ink;
+    letter-spacing: -.01em;
+  }
+
+  &__count {
+    font-size: .82rem;
+    color: $muted;
+    font-weight: 500;
+    padding: .25rem .6rem;
+    background: $card;
+    border: 1px solid $line;
+    border-radius: 999px;
+  }
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.1rem;
+}
+
+.service-card {
+  background: $card;
+  border-radius: $radius-md;
+  border: 1px solid $line-2;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-lg;
+    border-color: #dbe3f0;
+  }
+
+  &__body {
+    padding: 1rem 1.1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  h4 {
+    margin: 0 0 .55rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $ink;
+    letter-spacing: -.01em;
+  }
+}
+
+.service-media {
+  position: relative;
+  background: linear-gradient(135deg, #eef2ff, #ecfeff);
+  aspect-ratio: 16 / 10;
+
+  img,
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__dots {
+    position: absolute;
+    bottom: .6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: .3rem;
+    padding: .25rem .45rem;
+    background: rgba(15, 23, 42, .35);
+    backdrop-filter: blur(6px);
+    border-radius: 999px;
+
+    button {
+      width: 6px;
+      height: 6px;
+      padding: 0;
+      border: none;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .55);
+      cursor: pointer;
+      transition: all .15s ease;
+
+      &.active {
+        background: #fff;
+        width: 18px;
+      }
+    }
+  }
+}
+
+.service-placeholder {
+  aspect-ratio: 16 / 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #eef2ff, #ecfeff);
+  color: $brand;
+}
+
+.service-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .75rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px dashed $line-2;
+  font-size: .85rem;
+
+  &__date {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    color: $muted;
+    font-weight: 500;
+  }
+
+  &__price {
+    color: $ink;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: -.01em;
+
+    small {
+      color: $soft;
+      font-weight: 500;
+      font-size: .72rem;
+      margin-left: 2px;
+    }
+  }
+}
+
+.service-description {
+  margin: 0 0 1rem;
+  line-height: 1.6;
+  color: $muted;
+  font-size: .89rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+/*
+ * Keeps the service card's buttons stacked inside the card. The report button
+ * shares .review-action, which used to be absolutely positioned, so it escaped
+ * the card and rendered over the navbar.
+ */
+.service-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-top: .75rem;
+}
+
+.review-action--block {
+  width: 100%;
+  justify-content: center;
+}
+
+.book-service-btn {
+  width: 100%;
+  border: none;
+  border-radius: $radius-sm;
+  padding: .75rem 1rem;
+  background: $ink;
+  color: #fff;
+  font-weight: 600;
+  font-size: .88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  transition: all .18s ease;
+
+  svg {
+    transition: transform .18s ease;
+  }
+
+  &:hover {
+    background: $brand;
+    box-shadow: 0 10px 22px rgba(79, 70, 229, .28);
+
+    svg {
+      transform: translateX(3px);
+    }
+  }
+}
+
+/* ---------- Empty state ---------- */
+.empty-services {
+  width: 100%;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 2rem;
+  border-radius: $radius-lg;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px dashed #d5deec;
+  animation: fadeUp .45s ease;
+
+  h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: $ink-2;
+    letter-spacing: -.01em;
+  }
+
+  p {
+    margin-top: .6rem;
+    max-width: 380px;
+    color: $muted;
+    font-size: .92rem;
+    line-height: 1.7;
+  }
+}
+
+.empty-icon {
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  border-radius: 50%;
+  background: $brand-soft;
+  color: $brand;
+  box-shadow: 0 12px 30px rgba(79, 70, 229, .18);
+  transition: .3s ease;
+
+  svg {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.empty-services:hover .empty-icon {
+  transform: translateY(-4px);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+  .profile-card {
+    padding: 1.25rem;
+  }
+
+  /* Let the actions flow under the name rather than sit over it. */
+  .profile-actions {
+    position: static;
+    margin-top: .75rem;
+    justify-content: center;
+  }
+
+  .profile-card__top {
+    grid-template-columns: 1fr;
+    text-align: center;
+    margin-top: -4rem;
+  }
+
+  .avatar-container {
+    justify-content: center;
+  }
+
+  .profile-header {
+    align-items: center;
+  }
+
+  .row-action {
+    position: static;
+    margin-top: .9rem;
+    align-self: center;
+  }
+
+  .profile-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-item--wide {
+    grid-column: auto;
+  }
+
+  .profile-banner {
+    height: 130px;
+  }
+
+  .profile-avatar {
+    width: 108px;
+    height: 108px;
+  }
+}
+.badge-container{
+  display: flex;
+    gap: 6px;
+}
+.tag-badge {
+  background: aliceblue;
+  width: fit-content;
+  padding: 1px 9px;
+  color: #434dd1;
+}

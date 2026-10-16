@@ -1,0 +1,73 @@
+<section class="admin-chat">
+  <header>
+    <h1>Messages</h1>
+    <p>Contact approved tutors and review conversation history.</p>
+  </header>
+
+  <div class="chat-grid">
+    <aside class="contacts">
+      <label for="tutor-contact">Start a conversation</label>
+      <div class="tutor-picker">
+        <input
+          id="tutor-contact"
+          type="text"
+          role="combobox"
+          autocomplete="off"
+          placeholder="Search tutors by name or email"
+          [value]="tutorSearch"
+          (input)="onTutorSearch($any($event.target).value)"
+          (focus)="openTutorPicker()"
+          (keydown)="onPickerKeydown($event)"
+          [attr.aria-expanded]="tutorPickerOpen"
+          aria-controls="tutor-picker-list" />
+
+        <ul class="tutor-picker__list" id="tutor-picker-list" role="listbox" *ngIf="tutorPickerOpen">
+          <li
+            *ngFor="let tutor of filteredTutors; let i = index"
+            role="option"
+            [attr.aria-selected]="i === highlightedIndex"
+            [class.is-highlighted]="i === highlightedIndex"
+            (mouseenter)="highlightedIndex = i"
+            (click)="selectTutor(tutor)">
+            <strong>{{ tutor.user?.full_name }}</strong>
+            <small>{{ tutor.user?.email }}</small>
+          </li>
+
+          <li class="tutor-picker__empty" *ngIf="!filteredTutors.length">
+            No tutors match "{{ tutorSearch }}"
+          </li>
+        </ul>
+      </div>
+
+      <button type="button" *ngFor="let room of rooms"
+        [class.active]="room.chat_room_id === selectedRoom?.chat_room_id"
+        (click)="openRoom(room)">
+        <strong>{{ roomName(room) }}</strong>
+        <span>{{ room.last_message?.content || 'No messages yet' }}</span>
+      </button>
+      <p class="empty" *ngIf="!rooms.length">No conversations yet.</p>
+    </aside>
+
+    <main class="conversation">
+      <ng-container *ngIf="selectedRoom; else selectConversation">
+        <h2>{{ roomName(selectedRoom) }}</h2>
+        <div class="messages" #messageList>
+          <div *ngFor="let message of messages" class="message"
+            [class.mine]="message.sender_id === currentUserId">
+            <p>{{ message.content }}</p>
+            <time>{{ message.created_at | date:'short' }}</time>
+          </div>
+        </div>
+        <div class="composer">
+          <textarea [(ngModel)]="messageText" maxlength="4000" rows="2"
+            placeholder="Write a message"></textarea>
+          <button type="button" (click)="sendMessage()" [disabled]="!messageText.trim()">Send</button>
+        </div>
+      </ng-container>
+      <ng-template #selectConversation>
+        <p class="empty">Select or start a conversation.</p>
+      </ng-template>
+      <p class="error" *ngIf="error">{{ error }}</p>
+    </main>
+  </div>
+</section>

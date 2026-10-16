@@ -1,0 +1,100 @@
+<div class="drawer-container">
+<div class="chat-container">
+
+  <div class="chat-header">
+
+    <div class="user-info">
+
+      <div class="avatar">
+        {{ data.tutor.user.full_name?.charAt(0) }}
+      </div>
+
+      <div>
+        <div class="name">
+          {{ data.tutor.user.full_name }}
+          <!-- {{ data.tutor.last_name }} -->
+        </div>
+
+        <!-- <div class="status">
+          Online
+        </div> -->
+      </div>
+
+    </div>
+
+    <span
+  class="chat-close-btn"
+  (click)="close()"
+  aria-label="Close">
+
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none">
+
+    <path
+      d="M18 6L6 18M6 6L18 18"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"/>
+
+  </svg>
+
+</span>
+
+  </div>
+
+  <div #chatBody class="chat-body">
+
+  <div
+  *ngFor="let message of messages"
+  class="message-wrapper message-enter"
+ [ngClass]="{
+    'mine': message.sender_id === currentUserId,
+    'other': message.sender_id !== currentUserId
+  }"
+>
+  <div class="message-content">
+    <div class="message-bubble">
+      {{ message.content }}
+    </div>
+    <div class="time" [title]="message.created_at | date:'medium'">
+      {{ message.created_at | date:'shortTime' }}
+    </div>
+  </div>
+</div>
+
+  </div>
+
+  <div class="typing-indicator"
+       *ngIf="isTyping">
+
+     typing...
+
+  </div>
+
+  <div class="chat-footer">
+
+    <textarea
+      rows="1"
+      maxlength="4000"
+      [(ngModel)]="messageText"
+      (input)="onTyping()"
+      placeholder="Type a message..."
+      (keydown.enter)="$event.preventDefault(); sendMessage()">
+    </textarea>
+
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="sendMessage()">
+
+      Send
+
+    </button>
+
+  </div>
+
+</div>
+</div>

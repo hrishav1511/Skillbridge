@@ -1,0 +1,104 @@
+<!-- service-approval.component.html -->
+<section class="service-approvals">
+  <header class="service-approvals__header">
+    <h1 class="service-approvals__title">Service Approvals</h1>
+    <p class="service-approvals__subtitle">Review and manage tutor service requests</p>
+  </header>
+
+  <div class="service-approvals__table-wrapper">
+    <table class="approvals-table">
+      <colgroup>
+        <col class="approvals-table__col--service">
+        <col class="approvals-table__col--tutor">
+        <col class="approvals-table__col--date">
+        <col class="approvals-table__col--time">
+        <col class="approvals-table__col--level">
+        <col class="approvals-table__col--price">
+        <col class="approvals-table__col--status">
+        <col class="approvals-table__col--actions">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Tutor</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Level</th>
+          <th class="approvals-table__price">Price</th>
+          <!-- <th>Type</th> -->
+          <th>Status</th>
+          <!-- <th>Joining Link</th> -->
+          <th class="approvals-table__actions">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- Replace `approvals` with your component's data array -->
+        <tr *ngFor="let item of list" [class.approvals-table__row--flagged]="item.moderation_flag">
+          <td>
+            <div class="service-name-line">
+              <div class="cell-primary">{{ item.service_name }}</div>
+              <span *ngIf="item.moderation_flag" class="moderation-badge">AI flagged</span>
+            </div>
+            <div class="cell-secondary">{{ item.description }}</div>
+          </td>
+
+          <td>
+            <div class="cell-primary">{{ item.tutor?.full_name }}</div>
+            <div class="cell-secondary">{{ item.tutor?.email }}</div>
+            <div class="cell-secondary">{{ item.tutor?.phone }}</div>
+          </td>
+
+          <td>{{ item.date | date: 'mediumDate' }}</td>
+          <td>{{ item.time }}</td>
+
+          <td>
+            <span class="level-badge" [ngClass]="'level-badge--' + (item.level || '').toLowerCase()">
+              {{ item.level }}
+            </span>
+          </td>
+
+          <td class="approvals-table__price">{{ item.price | currency:'EUR' }}</td>
+
+          <!-- <td>
+            <span class="revision-tag" [ngClass]="'revision-tag--' + (item.revision_type || '').toLowerCase()">
+              {{ item.revision_type }}
+            </span>
+          </td> -->
+
+          <td>
+            <span class="status-badge" [ngClass]="'status-badge--' + (item.approval_status || 'pending').toLowerCase()">
+              {{ item.approval_status || 'PENDING' }}
+            </span>
+            <div *ngIf="item.moderation_flag" class="moderation-note">AI content moderated</div>
+          </td>
+
+          <!-- <td>
+            <a
+              *ngIf="item.joining_link; else noLink"
+              class="join-link"
+              [href]="item.joining_link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Join
+            </a>
+            <ng-template #noLink><span class="cell-muted">—</span></ng-template>
+          </td> -->
+
+          <td class="approvals-table__actions">
+            <button type="button" class="btn btn--approve" (click)="approve(item)">Approve</button>
+            <button type="button" class="btn btn--reject" (click)="reject(item)">Reject</button>
+          </td>
+        </tr>
+
+  
+       <tr *ngIf="!list?.length" class="approvals-table__empty-row">
+          <td colspan="8">
+            <div class="approvals-table__empty">No service approvals found.</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

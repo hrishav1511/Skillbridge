@@ -1,0 +1,755 @@
+# EC2 Deployment Documentation
+
+## SkillBridge About Page Deployment, Start, Stop, Create, and Update Scenarios
+
+This documentation explains what to do in every common situation when using the GitHub Actions workflows for deploying the About Page to AWS EC2.
+
+---
+
+# 1. Workflows Used
+
+You should have two GitHub Actions workflow files:
+
+```text
+.github/workflows/deploy-about-page.yml
+.github/workflows/stop-ec2.yml
+```
+
+## Workflow 1: Deploy About Page
+
+Name in GitHub Actions:
+
+```text
+Provision and Deploy About Page to AWS EC2
+```
+
+This workflow is used to:
+
+```text
+Create a new EC2 instance if none exists
+Start the stopped EC2 instance if it already exists
+Attach/reuse the Elastic IP
+Install/configure Nginx and HTTPS when setup_server=true
+Upload the latest website files from the selected branch
+Reload Nginx
+```
+
+## Workflow 2: Stop EC2
+
+Name in GitHub Actions:
+
+```text
+Stop AWS EC2 Instance
+```
+
+This workflow is used to:
+
+```text
+Pause/stop the EC2 instance
+Keep the EC2 instance saved
+Keep the files on the server
+Keep the Elastic IP
+Avoid deleting the server
+```
+
+---
+
+# 2. Important Concepts
+
+## EC2 Instance
+
+The EC2 instance is your virtual server.
+
+It runs:
+
+```text
+Ubuntu
+Nginx
+Your deployed HTML website
+Certbot / Let’s Encrypt certificate
+```
+
+## Elastic IP
+
+The Elastic IP is a fixed public IP address.
+
+You need it because a normal EC2 public IP can change after stopping and starting the server.
+
+With Elastic IP:
+
+```text
+Stop EC2
+Start EC2 again
+Same public IP stays
+DuckDNS still points correctly
+HTTPS still uses the same domain
+```
+
+## DuckDNS Domain
+
+Your free domain is:
+
+```text
+skillbridgeacademy.duckdns.org
+```
+
+It should point to your Elastic IP.
+
+Example:
+
+```text
+skillbridgeacademy.duckdns.org → 12.34.56.78
+```
+
+## setup_server Input
+
+This input controls whether the workflow configures the server.
+
+```text
+setup_server=true
+```
+
+Use this when:
+
+```text
+First time setting up the EC2 server
+Setting up HTTPS
+Changing domain
+Fixing Nginx or Certbot
+Creating a brand-new EC2 instance
+```
+
+```text
+setup_server=false
+```
+
+Use this when:
+
+```text
+Server is already configured
+You only want to upload new website files
+You are deploying updates after stopping/starting the server
+```
+
+---
+
+# 3. First-Time Setup Scenario
+
+Use this when the EC2 server does not exist yet.
+
+## Step 1: Run Deploy Without Domain
+
+Go to:
+
+```text
+GitHub Repository → Actions → Provision and Deploy About Page to AWS EC2 → Run workflow
+```
+
+Use these values:
+
+```text
+setup_server: true          #   Install/configure Nginx and HTTPS on EC2 before deploy
+deploy_branch: main   #       Branch or ref to deploy, e.g. main or gaurav-about-page write name of branch from where to upload 
+deploy_domain: leave empty        #Optional domain, e.g. skillbridgeacademy.duckdns.org. Leave empty for first HTTP-only setup.
+
+``` 
+
+This will:
+
+```text
+Create the EC2 instance
+Create or reuse the security group
+Create or reuse the key pair
+Allocate an Elastic IP
+Attach the Elastic IP to EC2
+Install Nginx
+Configure HTTP
+Deploy the About Page files
+Print the Elastic IP
+```
+
+At the end of the workflow, copy:
+
+```text
+Elastic IP: x.x.x.x
+```
+
+Example:
+
+```text
+Elastic IP: 12.34.56.78
+```
+
+---
+
+## Step 2: Add Elastic IP to DuckDNS
+
+Go to DuckDNS.
+
+Set:
+
+```text
+Domain: skillbridgeacademy
+IP: your Elastic IP
+```
+
+Example:
+
+```text
+skillbridgeacademy.duckdns.org → 12.34.56.78    #update in ivp4
+```
+
+Save/update DuckDNS.
+
+Then test from your computer:
+
+```bash
+nslookup skillbridgeacademy.duckdns.org
+```
+
+It should show your Elastic IP.
+
+---
+
+## Step 3: Run Deploy Again With Domain
+
+Run the deploy workflow again.
+
+Use:
+
+```text
+setup_server: true
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+This will:
+
+```text
+Use the existing EC2 instance
+Use the same Elastic IP
+Configure Nginx for the DuckDNS domain
+Request a Let’s Encrypt HTTPS certificate
+Enable HTTPS
+Deploy the website files again
+```
+
+After this, your website should work at:
+
+```text
+http://skillbridgeacademy.duckdns.org
+https://skillbridgeacademy.duckdns.org
+```
+
+---
+
+# 4. Normal Future Deployment Scenario
+
+Use this when the server already exists and HTTPS already works.
+
+Example: you changed HTML files and want to upload the latest version.
+
+Run:
+
+```text
+Provision and Deploy About Page to AWS EC2
+```
+
+Use:
+
+```text
+setup_server: false
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+This will:
+
+```text
+Find the existing EC2 instance
+Start it if it is stopped
+Use the same Elastic IP
+Upload latest files from main branch
+Replace old files in /var/www/about-page
+Reload Nginx
+```
+
+Use this most of the time.
+
+---
+
+# 5. Deploying From a Different Branch
+
+Use this when you want to deploy a feature branch instead of main.
+
+Example branch:
+
+```text
+gaurav-about-page
+```
+
+Run:
+
+```text
+Provision and Deploy About Page to AWS EC2
+```
+
+Use:
+
+```text
+setup_server: false
+deploy_branch: gaurav-about-page
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+This will deploy files from that branch.
+
+Example behavior:
+
+```text
+deploy_branch: main
+→ deploys main branch
+
+deploy_branch: gaurav-about-page
+→ deploys gaurav-about-page branch
+```
+
+---
+
+# 6. Stopping the EC2 Instance
+
+Use this when you are finished working and want to pause the server.
+
+Run:
+
+```text
+Stop AWS EC2 Instance
+```
+
+Input:
+
+```text
+confirm_stop: STOP
+```
+
+This will:
+
+```text
+Stop the EC2 instance
+Keep the EC2 instance saved
+Keep the website files
+Keep Nginx installed
+Keep Certbot installed
+Keep the Elastic IP allocated
+Keep DuckDNS pointing to the same IP
+```
+
+While the EC2 instance is stopped, the website will be offline.
+
+This URL will not load while stopped:
+
+```text
+https://skillbridgeacademy.duckdns.org
+```
+
+That is normal.
+
+---
+
+# 7. Starting the EC2 Instance Again After Stopping
+
+You do not need a separate “start” workflow.
+
+To start the server again, run the deploy workflow.
+
+Run:
+
+```text
+Provision and Deploy About Page to AWS EC2
+```
+
+Use:
+
+```text
+setup_server: false
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+This will:
+
+```text
+Find the stopped EC2 instance
+Start it
+Wait until it is ready
+Reuse the same Elastic IP
+Upload latest files
+Reload Nginx
+```
+
+After the workflow finishes, the website should work again:
+
+```text
+https://skillbridgeacademy.duckdns.org
+```
+
+---
+
+# 8. Updating the Website After Stopping
+
+Scenario:
+
+```text
+You stopped the EC2 yesterday.
+Today you changed files in GitHub.
+You want the site online again with the new files.
+```
+
+Do this:
+
+```text
+Run Provision and Deploy About Page to AWS EC2
+```
+
+Use:
+
+```text
+setup_server: false
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+The workflow will:
+
+```text
+Start the stopped EC2
+Get the latest files from main
+Upload them to EC2
+Reload Nginx
+```
+
+You do not need to update DuckDNS again.
+
+---
+
+# 9. Creating a New EC2 Instance
+
+A new EC2 instance is created only when the workflow cannot find an existing instance with this name:
+
+```text
+skillbridge-about-page-server
+```
+
+The deploy workflow searches for an EC2 instance with this tag:
+
+```text
+Name = skillbridge-about-page-server
+```
+
+If found:
+
+```text
+It reuses the existing EC2 instance
+```
+
+If not found:
+
+```text
+It creates a new EC2 instance
+```
+
+A new EC2 instance may be created if:
+
+```text
+The old EC2 was terminated/deleted
+The instance Name tag was changed
+The instance is in another AWS region
+The workflow is using a different AWS account
+```
+
+---
+
+# 10. If EC2 Was Accidentally Terminated
+
+If the EC2 instance was deleted/terminated, run:
+
+```text
+Provision and Deploy About Page to AWS EC2
+```
+
+Use:
+
+```text
+setup_server: true
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+The workflow will:
+
+```text
+Create a new EC2 instance
+Attach the existing Elastic IP if it still exists
+Install Nginx again
+Configure HTTPS again
+Deploy the website
+```
+
+If the Elastic IP still exists and DuckDNS already points to it, you do not need to change DuckDNS.
+
+If a new Elastic IP is created, update DuckDNS with the new Elastic IP.
+
+---
+
+# 11. When to Use setup_server=true
+
+Use:
+
+```text
+setup_server: true
+```
+
+for these scenarios:
+
+```text
+First-time setup
+New EC2 instance was created
+Nginx is not installed
+HTTPS is not configured
+Changing DuckDNS/domain name
+Fixing broken Nginx config
+Fixing broken Certbot config
+Recreating certificate setup
+```
+
+Example:
+
+```text
+setup_server: true
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+---
+
+# 12. When to Use setup_server=false
+
+Use:
+
+```text
+setup_server: false
+```
+
+for normal deployments.
+
+Use it when:
+
+```text
+EC2 already exists
+Nginx already works
+HTTPS already works
+You only changed website files
+You are deploying from main or another branch
+You are starting the stopped server again
+```
+
+Example:
+
+```text
+setup_server: false
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+This is the normal daily usage.
+
+---
+
+# 13. Common Scenarios Table
+
+| Scenario                              | Workflow | setup_server | deploy_branch | deploy_domain                  |
+| ------------------------------------- | -------- | -----------: | ------------- | ------------------------------ |
+| First EC2 creation, no DuckDNS yet    | Deploy   |         true | main          | empty                          |
+| After adding Elastic IP to DuckDNS    | Deploy   |         true | main          | skillbridgeacademy.duckdns.org |
+| Normal website update                 | Deploy   |        false | main          | skillbridgeacademy.duckdns.org |
+| Deploy a feature branch               | Deploy   |        false | branch name   | skillbridgeacademy.duckdns.org |
+| Start server after stopping           | Deploy   |        false | main          | skillbridgeacademy.duckdns.org |
+| Stop/pause server                     | Stop EC2 |     not used | not used      | not used                       |
+| New EC2 created after old one deleted | Deploy   |         true | main          | skillbridgeacademy.duckdns.org |
+| Change domain                         | Deploy   |         true | main          | new domain                     |
+| Fix HTTPS/Nginx                       | Deploy   |         true | main          | skillbridgeacademy.duckdns.org |
+
+---
+
+# 14. Recommended Daily Workflow
+
+## When starting work
+
+Run:
+
+```text
+Provision and Deploy About Page to AWS EC2
+```
+
+Use:
+
+```text
+setup_server: false
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+## When updating website files
+
+Push changes to GitHub, then run:
+
+```text
+Provision and Deploy About Page to AWS EC2
+```
+
+Use:
+
+```text
+setup_server: false
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+## When finished working
+
+Run:
+
+```text
+Stop AWS EC2 Instance
+```
+
+Use:
+
+```text
+confirm_stop: STOP
+```
+
+---
+
+# 15. Important Warnings
+
+## Do not use setup_server=false on a brand-new EC2
+
+If the EC2 is brand new and you run:
+
+```text
+setup_server: false
+```
+
+then the workflow may upload files, but the website may not work because Nginx may not be installed/configured.
+
+For a new EC2, use:
+
+```text
+setup_server: true
+```
+
+---
+
+## Do not terminate unless you really want to delete
+
+Stopping is safe.
+
+```text
+Stop = pause server, keep data
+Terminate = delete server
+```
+
+For your project, use stop, not terminate.
+
+---
+
+## DuckDNS only needs updating when Elastic IP changes
+
+Normally, Elastic IP does not change.
+
+So after the first setup:
+
+```text
+No need to update DuckDNS every time
+```
+
+Update DuckDNS only if:
+
+```text
+Elastic IP was deleted
+A new Elastic IP was created
+DuckDNS points to the wrong IP
+```
+
+---
+
+# 16. Final Simple Rules
+
+## First time
+
+```text
+Deploy with setup_server=true and deploy_domain empty
+Copy Elastic IP
+Put Elastic IP into DuckDNS
+Deploy again with setup_server=true and deploy_domain=skillbridgeacademy.duckdns.org
+```
+
+## Normal update
+
+```text
+Deploy with setup_server=false
+```
+
+## Stop server
+
+```text
+Run Stop AWS EC2 Instance
+Type STOP
+```
+
+## Start server again
+
+```text
+Run Deploy workflow with setup_server=false
+```
+
+## New server or broken HTTPS
+
+```text
+Run Deploy workflow with setup_server=true
+```
+
+---
+
+# 17. Your Most Common Inputs
+
+## Normal deploy from main
+
+```text
+setup_server: false
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+## Normal deploy from another branch
+
+```text
+setup_server: false
+deploy_branch: your-branch-name
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+## First HTTPS setup
+
+```text
+setup_server: true
+deploy_branch: main
+deploy_domain: skillbridgeacademy.duckdns.org
+```
+
+## Stop EC2
+
+```text
+confirm_stop: STOP
+```

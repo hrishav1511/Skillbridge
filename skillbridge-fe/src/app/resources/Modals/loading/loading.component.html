@@ -1,0 +1,35 @@
+<!-- @if(state === LoadingState.LOADING){ -->
+
+<div *ngIf="state === LoadingState.LOADING" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-500/60 backdrop-blur-md">
+
+  <div class="loader-container">
+
+    <!-- Outer Ring -->
+    <div class="loader-ring"></div>
+
+    <!-- Inner Ring -->
+    <div class="loader-ring-secondary"></div>
+
+    <!-- Logo -->
+    <div class="loader-logo">
+      <img
+        src="/assets/minlogo.png"
+        alt="SkillBridge"
+        class="h-16 w-auto"
+      />
+    </div>
+
+  </div>
+
+  <div class="absolute bottom-24 text-center">
+    <p class="text-lg font-medium text-white">
+      Loading...
+    </p>
+
+    <!-- <p class="mt-1 text-sm text-slate-300">
+      Preparing your experience
+    </p> -->
+  </div>
+
+</div>
+

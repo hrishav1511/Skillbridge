@@ -1,0 +1,42 @@
+<aside
+  *ngIf="currentNotification as notification; else chatMessagePopup"
+  class="notification-popup"
+  role="status"
+  aria-live="polite">
+  <span class="notification-popup__dot"></span>
+
+  <div
+    class="notification-popup__content"
+    [class.notification-popup__content--navigable]="currentIsNavigable"
+    (click)="openCurrent()">
+    <strong>{{ notification.title }}</strong>
+    <p>{{ notification.message }}</p>
+    <time>{{ notification.created_at | date: 'shortTime' }}</time>
+  </div>
+
+  <button
+    type="button"
+    class="notification-popup__close"
+    aria-label="Close notification"
+    (click)="close()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</aside>
+
+<ng-template #chatMessagePopup>
+  <aside
+    *ngIf="currentChatMessage as message"
+    class="notification-popup notification-popup--chat"
+    role="status"
+    aria-live="polite">
+    <span class="notification-popup__dot"></span>
+    <div class="notification-popup__content">
+      <strong>New message</strong>
+      <p>{{ message.content }}</p>
+      <time>{{ message.created_at | date: 'shortTime' }}</time>
+    </div>
+    <button type="button" class="notification-popup__close" aria-label="Close notification" (click)="close()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </aside>
+</ng-template>

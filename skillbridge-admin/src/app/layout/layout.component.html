@@ -1,0 +1,15 @@
+ <input type="checkbox" id="menu-toggle" class="menu-toggle" hidden />
+  <label for="menu-toggle" class="sidebar-scrim"></label>
+  <div class="app">
+
+    <!-- Sidebar -->
+      <app-sidepanel></app-sidepanel>
+    
+
+    <!-- Main -->
+    <main class="main">
+      <!-- Topbar -->
+        <app-topbar></app-topbar>
+        <router-outlet></router-outlet>
+    </main>
+  </div>

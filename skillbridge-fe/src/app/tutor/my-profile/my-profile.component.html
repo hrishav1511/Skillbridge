@@ -1,0 +1,335 @@
+<div class="profile-page">
+  <div class="profile-error" *ngIf="profileError" role="alert">
+    {{ profileError }}
+  </div>
+
+  <!-- Gradient banner -->
+  <!-- Gradient banner OR uploaded cover -->
+  <div class="profile-banner" [class.has-cover]="cover_img">
+    <img *ngIf="cover_img" [src]="cover_img" alt="Cover" class="cover-image" />
+
+    <button class="edit-cover-btn" (click)="coverInput.click()">
+      <svg width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0" />
+        <path
+          d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z" />
+      </svg>
+      {{ cover_img ? 'Change Cover' : 'Add Cover' }}
+    </button>
+
+    <input #coverInput type="file" accept="image/*" hidden (change)="onCoverSelected($event)" />
+  </div>
+
+  <div class="cropper-overlay" *ngIf="showCoverCropper" (click)="cancelCoverCrop()">
+    <div class="cropper-modal" (click)="$event.stopPropagation()">
+      <div class="cropper-header">
+        <div>
+          <h3>Crop your cover photo</h3>
+          <p>Drag and resize the frame — it's locked to the cover ratio.</p>
+        </div>
+        <button class="close-btn" (click)="cancelCoverCrop()" aria-label="Close">✕</button>
+      </div>
+
+      <div class="cropper-stage">
+        <image-cropper [imageChangedEvent]="coverImageChangedEvent" [maintainAspectRatio]="true"
+          [aspectRatio]="COVER_ASPECT_RATIO" [resizeToWidth]="1600" [cropperMinWidth]="200" [onlyScaleDown]="true"
+          format="png" [containWithinAspectRatio]="true" [alignImage]="'center'" [roundCropper]="false" [outputType]="'both'"
+          (imageCropped)="onCoverCropped($event)"></image-cropper>
+      </div>
+
+      <div class="cropper-footer">
+        <button class="ghost-btn" (click)="cancelCoverCrop()">Cancel</button>
+        <button class="primary-btn" [disabled]="!hasCropped" (click)="saveCover()">
+          Save Cover
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-layout">
+    <!-- ============ LEFT: PROFILE CARD ============ -->
+    <aside class="profile-sidebar">
+      <div class="avatar-block">
+        <div class="profile-avatar">
+          <img *ngIf="profile_img || selectedImagePreview" [src]="selectedImagePreview || profile_img" alt="Profile"
+            class="avatar-image" />
+          <span *ngIf="!profile_img && !selectedImagePreview">{{ initials }}</span>
+        </div>
+
+        <div class="photo-actions">
+          <button type="button" class="ghost-btn" (click)="fileInput.click()">
+            Edit Photo
+          </button>
+          <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
+          <button *ngIf="selectedFile" type="button" class="primary-btn sm" (click)="saveProfileImage()">
+            Save Photo
+          </button>
+        </div>
+      </div>
+
+      <div class="identity">
+        <h1>{{ myDetails?.user?.full_name }}</h1>
+        <p class="role-badge">{{ myDetails?.academic_program }}</p>
+      </div>
+
+      <div class="tag-badge-list" *ngIf="myDetails?.tags?.length">
+        <span class="tag-badge" *ngFor="let item of myDetails.tags">{{ item }}</span>
+      </div>
+
+      <div class="status-chips">
+        <button
+          type="button"
+          class="status-chip"
+          [class.is-visible]="myDetails?.is_visible"
+          [class.is-hidden]="!myDetails?.is_visible"
+          (click)="toggleVisibility()"
+          [title]="myDetails?.is_visible ? 'Visible to students — click to hide' : 'Hidden from students — click to show'"
+        >
+          <span class="chip-dot"></span>
+          <svg *ngIf="myDetails?.is_visible" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z" />
+            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0" />
+          </svg>
+          <svg *ngIf="!myDetails?.is_visible" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-2.79.588l.77.771A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755q-.247.248-.517.486zM11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829"/>
+            <path d="M3.35 5.47q-.27.24-.518.487A13 13 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7 7 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12z"/>
+          </svg>
+          {{ myDetails?.is_visible ? 'Visible' : 'Hidden' }}
+        </button>
+
+        <span class="status-chip is-static" [class.is-visible]="myDetails?.accepting_requests" [class.is-hidden]="!myDetails?.accepting_requests">
+          <span class="chip-dot"></span>
+          {{ myDetails?.accepting_requests ? 'Accepting Requests' : 'Not Accepting' }}
+        </span>
+      </div>
+
+      <button class="edit-profile-btn" (click)="editdetails()">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+          <path
+            d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001m-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708z" />
+        </svg>
+        Edit Profile
+      </button>
+
+      <hr class="divider" />
+
+      <div class="contact-block">
+        <div class="contact-row">
+          <span class="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="bi bi-envelope" viewBox="0 0 16 16">
+              <path
+                d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z" />
+            </svg></span>
+          <div>
+            <label>Email</label>
+            <p>{{ myDetails?.user?.email }}</p>
+          </div>
+        </div>
+        <div class="contact-row">
+          <span class="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="bi bi-telephone" viewBox="0 0 16 16">
+              <path
+                d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.68.68 0 0 0-.58-.122l-2.19.547a1.75 1.75 0 0 1-1.657-.459L5.482 8.062a1.75 1.75 0 0 1-.46-1.657l.548-2.19a.68.68 0 0 0-.122-.58zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877z" />
+            </svg></span>
+          <div>
+            <label>Phone</label>
+            <p>{{ myDetails?.user?.phone }}</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ RIGHT: CONTENT ============ -->
+    <section class="profile-main">
+      <div class="stats-row">
+
+        <div class="stat-card">
+          <span class="stat-icon status">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14m0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16"/>
+              <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 10.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+            </svg>
+          </span>
+          <div>
+            <span class="stat-value capitalize">{{ myDetails?.approval_status || 'Pending' }}</span>
+            <span class="stat-label">Approval Status</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-icon program">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917z" />
+              <path d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z" />
+            </svg>
+          </span>
+          <div>
+            <span class="stat-value">{{ myDetails?.academic_program || '—' }}</span>
+            <span class="stat-label">Academic Program</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <h2 class="content-card-title">About</h2>
+        <p class="content-card-text">{{ myDetails?.bio || 'No bio added yet.' }}</p>
+      </div>
+
+      <div class="content-card">
+        <h2 class="content-card-title">Teaching Style</h2>
+        <p class="content-card-text">{{ myDetails?.teaching_style || 'Not specified yet.' }}</p>
+      </div>
+    </section>
+
+    <!-- ============ SERVICES (dedicated Tutor Services page handles management) ============ -->
+    <!--
+    <section class="profile-main">
+      <div class="section-header">
+        <div>
+          <h2>My Services</h2>
+          <p class="subtitle">Services students can book with you</p>
+        </div>
+        <button class="add-service-btn" (click)="addService()">+ Add Service</button>
+      </div>
+
+      <div class="services-grid" *ngIf="services?.length; else emptyState">
+        <article class="service-card" [class.service-card--expired]="isServiceExpired(item)" *ngFor="let item of services; let i = index">
+           Thumbnail / cover 
+          <div class="service-thumb" [class.no-image]="!item.thumbnail && !item.image_urls?.length">
+            <ng-container *ngIf="item.image_urls?.length; else singleThumb">
+              <ng-container *ngIf="item.image_urls.length === 1; else multiImageCarousel">
+                <img [src]="item.image_urls[0]" [alt]="item.service_name" />
+              </ng-container>
+
+              <ng-template #multiImageCarousel>
+                <div class="carousel-shell">
+                  <div class="carousel-track">
+                    <img
+                      *ngIf="(getCarouselVersion(i) % 2) === 0; else animatedImage"
+                      [src]="getServiceImage(item, i)"
+                      [alt]="item.service_name"
+                      class="carousel-image"
+                    />
+                    <ng-template #animatedImage>
+                      <img
+                        [src]="getServiceImage(item, i)"
+                        [alt]="item.service_name"
+                        class="carousel-image"
+                        [class.slide-next]="getCarouselDirection(i) === 'next'"
+                        [class.slide-prev]="getCarouselDirection(i) === 'prev'"
+                      />
+                    </ng-template>
+                  </div>
+                  <button type="button" class="carousel-nav prev" (click)="changeServiceImage(i, -1)">
+                    ‹
+                  </button>
+                  <button type="button" class="carousel-nav next" (click)="changeServiceImage(i, 1)">
+                    ›
+                  </button>
+                  <span class="carousel-badge">{{ getCurrentImagePosition(i) }}/{{ getServiceImageCount(item) }}</span>
+                </div>
+              </ng-template>
+            </ng-container>
+
+            <ng-template #singleThumb>
+              <img *ngIf="item.thumbnail" [src]="item.thumbnail" [alt]="item.service_name" />
+              <div *ngIf="!item.thumbnail" class="thumb-fallback">
+                <svg width="34" height="34" fill="currentColor" viewBox="0 0 16 16">
+                  <path
+                    d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917z" />
+                  <path
+                    d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z" />
+                </svg>
+              </div>
+            </ng-template>
+
+            <span class="category-chip" *ngIf="item.category">{{ item.category }}</span>
+
+            <div class="service-actions">
+             
+              <button class="icon-btn delete" (click)="deleteService(item)" title="Delete">
+                <svg width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                  <path
+                    d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                  <path
+                    d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="service-body">
+            <div class="service-head">
+              <h4>{{ item.service_name }}</h4>
+              <span class="rating" *ngIf="item.rating">
+                <svg width="14" height="14" fill="#f59e0b" viewBox="0 0 16 16">
+                  <path
+                    d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.283.95l-3.523 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
+                </svg>
+                {{ item.rating }}
+              </span>
+            </div>
+
+            <p class="service-description">{{ item.description }}</p>
+
+            <div class="service-tags">
+              <span class="tag">
+                <svg width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z" />
+                  <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0" />
+                </svg>
+                {{ item.date }}
+              </span>
+              <span class="tag expired-tag" *ngIf="isServiceExpired(item)">Expired</span>
+              <span class="tag" *ngIf="item.services_count">
+                <svg width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                  <path
+                    d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4" />
+                </svg>
+                {{ item.services_count }} services
+              </span>
+            </div>
+
+            <div class="service-footer">
+              <div class="price-block">
+                <span class="price">€{{ item.price }}</span>
+                <span class="per">/service</span>
+              </div>
+              <div class="service-footer-actions">
+                <button class="attachment-btn" type="button" (click)="openAttachments(item)" title="Manage attachments">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m21.4 11.6-8.9 8.9a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.7-8.7" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  Attachments
+                </button>
+                <button class="book-btn" type="button" [disabled]="isServiceExpired(item)" (click)="addService(item)">
+                  {{ isServiceExpired(item) ? 'Expired' : 'Manage' }}
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="empty-services">
+          <div class="empty-icon">
+            <svg width="44" height="44" fill="currentColor" viewBox="0 0 16 16">
+              <path
+                d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917z" />
+              <path
+                d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z" />
+            </svg>
+          </div>
+          <h3>No Services Yet</h3>
+          <p>Create your first tutoring service and start accepting students.</p>
+          <button class="add-service-btn" (click)="addService()">+ Create Service</button>
+        </div>
+      </ng-template>
+    </section>
+    -->
+  </div>
+</div>

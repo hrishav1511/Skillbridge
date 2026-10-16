@@ -1,0 +1,295 @@
+// service-approval.component.scss
+
+// --- Palette (tuned to match the SkillBridge dashboard) ---
+$bg:            #f4f3fb;
+$surface:       #ffffff;
+$border:        #e7e6f2;
+$text:          #1f1d3d;
+$text-muted:    #6b6890;
+$primary:       #2b1c63;
+$primary-soft:  #efeafc;
+
+$green:   #1f9d6b;
+$green-bg:#e4f6ee;
+$red:     #d4453b;
+$red-bg:  #fbe7e6;
+$amber:   #c47d12;
+$amber-bg:#fbf1dd;
+$blue:    #3858c4;
+$blue-bg: #e6ebfb;
+
+.service-approvals {
+  padding: 8px 4px 32px;
+  color: $text;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+
+  &__header {
+    margin-bottom: 20px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  &__subtitle {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: $text-muted;
+  }
+
+  &__table-wrapper {
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 14px;
+    height: clamp(280px, calc(100vh - 230px), 620px);
+    overflow: auto;
+    box-shadow: 0 1px 3px rgba(43, 28, 99, 0.04);
+  }
+}
+
+.approvals-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 980px;
+
+  &__col--service { width: 22%; }
+  &__col--tutor { width: 15%; }
+  &__col--date { width: 9%; }
+  &__col--time { width: 8%; }
+  &__col--level { width: 9%; }
+  &__col--price { width: 9%; }
+  &__col--status { width: 12%; }
+  &__col--actions { width: 16%; }
+  &__col--email { width: 22%; }
+  &__col--program { width: 22%; }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-align: left;
+    padding: 14px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $text-muted;
+    background: $primary-soft;
+    white-space: nowrap;
+  }
+
+  thead th,
+  tbody td {
+    overflow-wrap: anywhere;
+  }
+
+  thead th:nth-child(6),
+  tbody td:nth-child(6) {
+    text-align: right;
+  }
+
+  thead th:last-child,
+  tbody td:last-child {
+    text-align: center;
+  }
+
+  tbody td {
+    padding: 14px 16px;
+    border-top: 1px solid $border;
+    vertical-align: top;
+  }
+
+  tbody tr:hover {
+    background: rgba(239, 234, 252, 0.45);
+  }
+
+  tbody tr.approvals-table__row--flagged {
+    background: #ffdfdf;
+    box-shadow: inset 4px 0 0 #d97706;
+  }
+
+  tbody tr.approvals-table__row--flagged:hover {
+    background: #f8d3d3;
+  }
+
+  &__price {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__actions {
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  &__empty {
+    padding: 32px 0;
+    text-align: center;
+    color: $text-muted;
+  }
+}
+
+// --- Cell text styles ---
+.cell-primary {
+  font-weight: 600;
+  color: $text;
+}
+
+.service-name-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cell-secondary {
+  font-size: 12px;
+  color: $text-muted;
+  margin-top: 2px;
+}
+
+.cell-muted {
+  color: $text-muted;
+}
+
+.moderation-badge,
+.moderation-note {
+  color: #9a3412;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.moderation-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  background: #ffedd5;
+  white-space: nowrap;
+}
+
+.moderation-note {
+  margin-top: 6px;
+}
+
+// --- Level badge ---
+.level-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  background: $blue-bg;
+  color: $blue;
+
+  &--beginner     { background: $green-bg; color: $green; }
+  &--intermediate { background: $amber-bg; color: $amber; }
+  &--advanced     { background: $blue-bg;  color: $blue;  }
+}
+
+// --- Revision type tag ---
+.revision-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: $primary-soft;
+  color: $primary;
+
+  &--create { background: $green-bg; color: $green; }
+  &--update { background: $amber-bg; color: $amber; }
+  &--delete { background: $red-bg;   color: $red;   }
+}
+
+// --- Status badge ---
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  background: $amber-bg;
+  color: $amber;
+
+  &--approved { background: $green-bg; color: $green; }
+  &--rejected { background: $red-bg;   color: $red;   }
+  &--pending  { background: $amber-bg; color: $amber; }
+}
+
+// --- Joining link ---
+.join-link {
+  color: $primary;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+// --- Action buttons ---
+.btn {
+  border: none;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: opacity 0.15s ease, transform 0.05s ease;
+
+  & + & { margin-left: 8px; }
+
+  &:active { transform: translateY(1px); }
+
+  &--approve {
+    background: $green;
+    color: #fff;
+    &:hover { opacity: 0.9; }
+  }
+
+  &--reject {
+    background: $red-bg;
+    color: $red;
+    &:hover { background: darken($red-bg, 4%); }
+  }
+}
+.approvals-table__actions {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #f3f6fb;
+  color: #946df8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #946df8;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(79, 70, 229, 0.25);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    display: block;
+  }
+}

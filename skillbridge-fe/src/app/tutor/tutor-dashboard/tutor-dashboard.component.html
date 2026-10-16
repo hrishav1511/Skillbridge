@@ -1,0 +1,298 @@
+
+  <main class="dashboard">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div>
+        <p class="eyebrow">{{curDate | date:'EEEE, MMMM d'}}</p>
+        <h1>Good morning, {{ loggedInUser.full_name || 'there' }} <span>👋</span></h1>
+        <p class="hero-sub">You have <strong>{{ dashboardData?.upcoming_services?.length || 0 }} upcoming services</strong>. Your next one starts <strong>{{ nextServiceCountdown }}</strong>.</p>
+      </div>
+      <!-- <div class="hero-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+        <span class="hero-pill__label">Weekly earnings</span>
+        <span class="hero-pill__value">€640</span>
+        <span class="hero-pill__delta">+18%</span>
+      </div> -->
+    </section>
+
+    <!-- STATS -->
+    <section class="stats">
+      <article class="stat-card">
+        <div class="stat-card__head">
+          <div>
+            <p class="stat-label">Total Services</p>
+            <h2 class="stat-value">{{dashboardData?.cards?.total_services || 0}}</h2>
+            <!-- <p class="stat-change">+12% this month</p> -->
+          </div>
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </div>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-card__head">
+          <div>
+            <p class="stat-label">Total Earnings</p>
+            <h2 class="stat-value">€{{dashboardData?.cards?.total_earnings || 0}}</h2>
+            <!-- <p class="stat-change">+8.4% vs last month</p> -->
+          </div>
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+          </div>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-card__head">
+          <div>
+            <p class="stat-label">Students</p>
+            <h2 class="stat-value">{{dashboardData?.cards?.total_unique_students_taught || 0}}</h2>
+            <!-- <p class="stat-change">+2 new this week</p> -->
+          </div>
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 22a7 7 0 0 1 14 0"/><circle cx="17" cy="9" r="3"/><path d="M22 21a5 5 0 0 0-6-4.9"/></svg>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- MAIN GRID -->
+    <section class="grid">
+      <div class="grid-left">
+
+        <!-- CALENDAR -->
+        <section class="panel">
+          <header class="panel__header">
+            <div>
+              <h2>Schedule</h2>
+              <p>Every scheduled service, by date</p>
+            </div>
+            <div class="calendar-nav">
+              <button
+                type="button"
+                class="calendar-nav__btn"
+                (click)="previousMonth()"
+                aria-label="Previous month">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <span class="calendar-nav__label">{{ calendarMonthLabel }}</span>
+              <button
+                type="button"
+                class="calendar-nav__btn"
+                (click)="nextMonth()"
+                aria-label="Next month">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+              <button
+                type="button"
+                class="calendar-nav__today"
+                (click)="goToToday()"
+                [disabled]="isViewingCurrentMonth">
+                Today
+              </button>
+            </div>
+          </header>
+
+          <div class="calendar">
+            <div class="calendar__weekdays">
+              <span *ngFor="let label of weekdayLabels">{{ label }}</span>
+            </div>
+
+            <div class="calendar__week" *ngFor="let week of calendarWeeks">
+              <ng-container *ngFor="let cell of week">
+                <!-- Padding cells and days with nothing on them are inert. -->
+                <div class="calendar__cell calendar__cell--empty" *ngIf="!cell.day"></div>
+
+                <div
+                  *ngIf="cell.day && !cell.services.length"
+                  class="calendar__cell calendar__cell--idle"
+                  [class.calendar__cell--today]="cell.isToday">
+                  <span class="calendar__day">{{ cell.day }}</span>
+                </div>
+
+                <button
+                  *ngIf="cell.day && cell.services.length"
+                  type="button"
+                  class="calendar__cell calendar__cell--active"
+                  [class.calendar__cell--today]="cell.isToday"
+                  (click)="openDay(cell)"
+                  [attr.aria-label]="cell.services.length + ' services on ' + (cell.date | date:'MMM d')">
+                  <span class="calendar__day">{{ cell.day }}</span>
+                  <span class="calendar__count">{{ cell.services.length }}</span>
+                </button>
+              </ng-container>
+            </div>
+          </div>
+        </section>
+
+        <!-- SERVICES -->
+        <section class="panel">
+          <header class="panel__header">
+            <div>
+              <h2>My services</h2>
+              <p>Manage the lessons and services students can book</p>
+            </div>
+            <button type="button" class="link services-link" [routerLink]="['/tutor/services']">
+              See all services <i class="bi bi-arrow-up-right"></i>
+            </button>
+          </header>
+          <div class="services-entry">
+            <span class="services-entry__icon"><i class="bi bi-collection-play"></i></span>
+            <div>
+              <strong>View your complete service catalogue</strong>
+              <p>Edit service information, update media, or inspect service details.</p>
+            </div>
+            <button type="button" class="btn btn-primary" [routerLink]="['/tutor/services']">Open services</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <header class="panel__header">
+            <div>
+              <h2>Recent service requests</h2>
+              <p>Accept, decline, cancel, or reschedule requests for your services</p>
+            </div>
+            <button type="button" class="link services-link" [routerLink]="['/tutor/service-requests']">
+              See all requests <i class="bi bi-arrow-up-right"></i>
+            </button>
+          </header>
+          <div class="services-entry" *ngFor="let booking of recentServiceRequests">
+            <span class="services-entry__icon"><i class="bi bi-calendar-check"></i></span>
+            <div>
+              <strong>{{ booking.service?.service_name || 'Service request' }}</strong>
+              <p>{{ booking.scheduled_start_at | date:'medium' }} · {{ bookingStatus(booking) }}</p>
+              <p *ngIf="pendingProposal(booking) as proposal">Proposed: {{ proposal.proposed_start_at | date:'medium' }}</p>
+            </div>
+            <button type="button" class="btn btn-primary" *ngIf="bookingStatus(booking) === 'PENDING'" (click)="updateBooking(booking, 'accept')">Accept</button>
+            <button type="button" class="btn" *ngIf="bookingStatus(booking) === 'PENDING'" (click)="updateBooking(booking, 'decline')">Decline</button>
+            <button type="button" class="btn" *ngIf="bookingStatus(booking) === 'ACCEPTED' && !pendingProposal(booking)" (click)="proposeReschedule(booking)">Reschedule</button>
+            <button type="button" class="btn btn-primary" *ngIf="pendingProposal(booking)?.proposed_by_user_id !== currentUserId && pendingProposal(booking)" (click)="respondToProposal(booking, true)">Accept time</button>
+            <button type="button" class="btn" *ngIf="pendingProposal(booking)?.proposed_by_user_id !== currentUserId && pendingProposal(booking)" (click)="respondToProposal(booking, false)">Reject time</button>
+            <button type="button" class="btn" *ngIf="bookingStatus(booking) === 'ACCEPTED'" (click)="cancelService(booking)">Cancel</button>
+          </div>
+          <div class="services-entry" *ngIf="!serviceRequests.length">
+            <div><strong>No service requests</strong><p>New requests will appear here.</p></div>
+          </div>
+          <div class="services-entry" *ngIf="serviceRequests.length > recentServiceRequests.length">
+            <div>
+              <strong>{{ serviceRequests.length - recentServiceRequests.length }} more request(s)</strong>
+              <p>Open the full list to see every request.</p>
+            </div>
+            <button type="button" class="btn btn-primary" [routerLink]="['/tutor/service-requests']">See all</button>
+          </div>
+        </section>
+
+        <!-- INBOX -->
+        <section class="panel">
+
+  <header class="panel__header">
+
+    <div>
+      <h2>My Inbox</h2>
+      <p>Recent conversations with students</p>
+    </div>
+
+    <button
+      class="see-all-btn"
+      [routerLink]="['/tutor/my-messages']" *ngIf="chatlist.length > 3">
+
+      See all
+
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="16"
+           height="16"
+           viewBox="0 0 24 24"
+           fill="none">
+
+        <path
+          d="M5 12H19M19 12L13 6M19 12L13 18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+      </svg>
+
+    </button>
+
+  </header>
+
+  <ul class="inbox">
+
+    <li
+      class="inbox__item"
+      *ngFor="let item of chatlist | slice:0:3"
+      (click)="gotoChat(item)">
+
+      <div class="inbox__avatar">
+        {{ item.members[0].full_name.split(' ')[0][0] }}
+        {{ item.members[0].full_name.split(' ').length > 1 ? item.members[0].full_name.split(' ')[1][0] : '' }}
+      </div>
+
+      <div class="inbox__body">
+
+        <p class="inbox__name">
+          {{ item.members[0].full_name }}
+        </p>
+
+        <p class="inbox__msg">
+          {{ item.last_message.content }}
+        </p>
+
+      </div>
+
+      <div class="inbox__meta">
+
+        <span class="inbox__time">
+          {{ item.last_message.created_at | date:'shortTime' }}
+        </span>
+
+      </div>
+
+    </li>
+
+  </ul>
+
+</section>
+      </div>
+
+      <!-- RIGHT -->
+      <aside class="grid-right">
+
+        <!-- PERFORMANCE -->
+        <section class="panel panel--dark">
+          <header class="panel__header">
+            <div>
+              <h2>Performance</h2>
+              <p>Last 30 days</p>
+            </div>
+            <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 7 7 .6-5.3 4.7 1.6 7L12 17.8 5.7 21.3l1.6-7L2 9.6 9 9z"/></svg>
+          </header>
+
+          <div class="perf">
+            <div class="perf__row">
+              <div class="perf__label">Rating</div>
+              <div class="perf__value">{{dashboardData?.performance?.average_rating || 0.0}}<span>/ 5.0</span></div>
+            </div>
+            
+
+            <div class="perf__row">
+              <div class="perf__label">Total Reviews</div>
+              <div class="perf__value">{{dashboardData?.performance?.total_reviews_last_30_days || 0}}<span></span></div>
+            </div>
+            
+
+            <div class="perf__row">
+              <div class="perf__label">Students per Service</div>
+              <div class="perf__value">{{dashboardData?.performance?.average_students_per_service || 0}}<span></span></div>
+            </div>
+            
+          </div>
+        </section>
+
+      </aside>
+    </section>
+
+  </main>

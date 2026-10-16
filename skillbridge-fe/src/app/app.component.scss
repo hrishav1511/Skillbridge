@@ -1,0 +1,36 @@
+:host {
+  display: block;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-shell__content {
+  flex: 1 0 auto;
+  padding-bottom: 3.25rem; /* reserve space so content isn't hidden behind the fixed footer */
+}
+
+.app-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 500;
+  text-align: center;
+  padding: 0.85rem 1rem;
+  background: #0f172a;
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  line-height: 1.4;
+
+  p { margin: 0; }
+
+  .app-footer__notice {
+    color: #94a3b8;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+}

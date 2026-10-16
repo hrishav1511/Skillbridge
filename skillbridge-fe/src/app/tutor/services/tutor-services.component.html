@@ -1,0 +1,87 @@
+<main class="services-page">
+  <button type="button" class="back-link" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i>
+    Back to dashboard
+  </button>
+
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Tutor workspace</p>
+      <h1>My Services</h1>
+      <p>Manage everything students can discover and book from your profile.</p>
+    </div>
+    <div class="page-actions">
+      <div class="service-total"><strong>{{ services.length }}</strong><span>{{ services.length === 1 ? 'service' : 'services' }}</span></div>
+      <button type="button" class="add-service-button" (click)="addService()">
+        <i class="bi bi-plus-lg"></i>
+        Add service
+      </button>
+    </div>
+  </header>
+
+  <nav class="status-filter" aria-label="Filter services by status">
+    <button type="button" [class.is-active]="selectedStatus === 'ALL'" [attr.aria-pressed]="selectedStatus === 'ALL'" (click)="selectStatus('ALL')">
+      <i class="bi bi-grid"></i> All
+    </button>
+    <button type="button" [class.is-active]="selectedStatus === 'UPCOMING'" [attr.aria-pressed]="selectedStatus === 'UPCOMING'" (click)="selectStatus('UPCOMING')">
+      <span class="status-dot status-dot--upcoming"></span> Upcoming
+    </button>
+    <button type="button" [class.is-active]="selectedStatus === 'RUNNING'" [attr.aria-pressed]="selectedStatus === 'RUNNING'" (click)="selectStatus('RUNNING')">
+      <span class="status-dot status-dot--running"></span> Running
+    </button>
+    <button type="button" [class.is-active]="selectedStatus === 'COMPLETED'" [attr.aria-pressed]="selectedStatus === 'COMPLETED'" (click)="selectStatus('COMPLETED')">
+      <span class="status-dot status-dot--completed"></span> Completed
+    </button>
+  </nav>
+
+  <section class="state-panel" *ngIf="loading">
+    <i class="bi bi-arrow-repeat"></i>
+    <p>Loading your services...</p>
+  </section>
+
+  <section class="service-list" *ngIf="!loading && services.length; else emptyServices">
+    <article class="service-row" *ngFor="let service of services; let i = index">
+      <button type="button" class="service-thumb" (click)="openDetails(service)" [attr.aria-label]="'Open ' + service.service_name">
+        <img *ngIf="service.image_urls?.length; else coverFallback" [src]="service.image_urls[0]" [alt]="service.service_name" />
+        <ng-template #coverFallback><span><i class="bi bi-mortarboard-fill"></i></span></ng-template>
+        <span class="media-count" *ngIf="mediaCount(service)"><i class="bi bi-images"></i> {{ mediaCount(service) }}</span>
+      </button>
+
+      <div class="service-content">
+        <div class="service-heading">
+          <div>
+            <!-- <p class="service-kicker">Service {{ i + 1 }}</p> -->
+            <h2>{{ service.service_name }}</h2>
+          </div>
+          <span class="level-chip">{{ service.level || 'All levels' }}</span>
+        </div>
+        <p class="service-description">{{ service.description || 'No description added yet.' }}</p>
+        <div class="service-meta">
+          <span><i class="bi bi-calendar3"></i>{{ service.date | date:'EEE, MMM d, y' }}</span>
+          <span><i class="bi bi-clock"></i>{{ service.time | slice:0:5 }}<ng-container *ngIf="service.end_time"> - {{ service.end_time | slice:0:5 }}</ng-container></span>
+          <span><i class="bi bi-people"></i>{{ service.enrolled_students_count || 0 }} enrolled</span>
+        </div>
+        <div class="service-actions">
+          <button type="button" class="action-button action-button--primary" (click)="openDetails(service)"><i class="bi bi-eye"></i> View details</button>
+          <button type="button" class="action-button" *ngIf="serviceStatus(service) === 'UPCOMING'" (click)="editService(service)"><i class="bi bi-pencil"></i> Edit</button>
+        </div>
+      </div>
+
+      <aside class="service-status-rail" [class.is-upcoming]="serviceStatus(service) === 'UPCOMING'" [class.is-running]="serviceStatus(service) === 'RUNNING'" [class.is-completed]="serviceStatus(service) === 'COMPLETED'">
+        <span class="status-label">Service status</span>
+        <strong>{{ statusLabel(service) }}</strong>
+        <span class="status-date" *ngIf="serviceStatus(service) === 'UPCOMING'">Starts in {{ countdown(service) }}</span>
+        <span class="status-date" *ngIf="serviceStatus(service) === 'RUNNING'">Service in progress</span>
+        <span class="status-date" *ngIf="serviceStatus(service) === 'COMPLETED'">Service ended</span>
+      </aside>
+    </article>
+  </section>
+
+  <ng-template #emptyServices>
+    <section class="state-panel" *ngIf="!loading">
+      <span class="empty-icon"><i class="bi bi-collection"></i></span>
+      <h2>{{ selectedStatus === 'ALL' ? 'No services yet' : 'No matching services' }}</h2>
+      <p>{{ selectedStatus === 'ALL' ? 'Create your first service from your profile to start welcoming students.' : 'Try another service status filter.' }}</p>
+    </section>
+  </ng-template>
+</main>

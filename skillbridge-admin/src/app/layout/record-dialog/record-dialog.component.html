@@ -1,0 +1,54 @@
+<div class="record-dialog" role="dialog" aria-modal="true" aria-labelledby="record-title">
+  <header class="record-dialog__head">
+    <div class="record-dialog__ident">
+      <img *ngIf="avatarUrl" class="record-dialog__avatar" [src]="avatarUrl" [alt]="title" />
+      <div>
+        <p class="record-dialog__eyebrow">{{ data.kind | titlecase }} record</p>
+        <h2 id="record-title">{{ title }}</h2>
+      </div>
+    </div>
+    <span class="record-dialog__status" [class.record-dialog__status--off]="isInactive">
+      {{ isInactive ? 'Disabled' : 'Active' }}
+    </span>
+  </header>
+
+  <dl class="record-dialog__grid">
+    <div class="record-dialog__field" *ngFor="let row of rows">
+      <dt>{{ row.label }}</dt>
+      <dd>{{ row.value }}</dd>
+    </div>
+  </dl>
+
+  <section class="record-dialog__block" *ngIf="description">
+    <h3>Description</h3>
+    <p>{{ description }}</p>
+  </section>
+
+  <section class="record-dialog__block" *ngIf="data.kind === 'service'">
+    <h3>Uploaded media <span class="record-media__count">{{ mediaItems.length }}</span></h3>
+    <div class="record-media" *ngIf="mediaItems.length; else noMedia">
+      <figure class="record-media__tile" *ngFor="let media of mediaItems">
+        <img *ngIf="media.type === 'image'" [src]="media.url" alt="Service image" loading="lazy"
+          (error)="onMediaError($event)" />
+        <video *ngIf="media.type === 'video'" [src]="media.url" controls preload="metadata"
+          (error)="onMediaError($event)"></video>
+        <figcaption>
+          <span>{{ media.type === 'image' ? 'Image' : 'Video' }}</span>
+          <a [href]="media.url" target="_blank" rel="noopener noreferrer">Open</a>
+        </figcaption>
+      </figure>
+    </div>
+    <ng-template #noMedia>
+      <p class="record-dialog__muted">No images or videos uploaded.</p>
+    </ng-template>
+  </section>
+
+  <footer class="record-dialog__actions">
+    <button type="button" class="record-btn" (click)="close()">Close</button>
+    <button *ngIf="data.allowStatusChange" type="button"
+      class="record-btn" [class.record-btn--danger]="!isInactive"
+      (click)="toggleStatus()">
+      {{ isInactive ? 'Enable' : 'Disable' }} {{ data.kind }}
+    </button>
+  </footer>
+</div>

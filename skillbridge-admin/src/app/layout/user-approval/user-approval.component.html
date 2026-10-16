@@ -1,0 +1,66 @@
+<!-- service-approval.component.html -->
+<section class="service-approvals">
+  <header class="service-approvals__header">
+    <h1 class="service-approvals__title">User Approvals</h1>
+    <p class="service-approvals__subtitle">Review and accept new tutors into the system</p>
+  </header>
+
+  <div class="service-approvals__table-wrapper">
+    <table class="approvals-table">
+      <colgroup>
+        <col class="approvals-table__col--tutor">
+        <col class="approvals-table__col--email">
+        <col class="approvals-table__col--program">
+        <col class="approvals-table__col--status">
+        <col class="approvals-table__col--actions">
+      </colgroup>
+      <thead>
+        <tr>
+          <!-- <th>Service</th> -->
+          <th>Tutor</th>
+          <!-- <th>Date</th> -->
+          <th>email</th>
+          <th>program</th>
+          <!-- <th>Type</th> -->
+          <th>Status</th>
+          <!-- <th>Joining Link</th> -->
+          <th class="approvals-table__actions">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- Replace `approvals` with your component's data array -->
+        <tr *ngFor="let item of list">
+          <td>{{ item.user?.full_name }}
+          </td>
+
+          <td>
+                       {{ item.user?.email }}
+
+          </td>
+
+          <td>{{ item.academic_program }}</td>
+          <td>{{ item.approval_status }}</td>
+
+          <!-- <td>
+            <span class="level-badge" [ngClass]="'level-badge--' + (item.level || '').toLowerCase()">
+              {{ item.level }}
+            </span>
+          </td> -->
+
+          <td class="approvals-table__actions">
+            <button type="button" class="btn btn--approve" (click)="approve(item)">Approve</button>
+            <button type="button" class="btn btn--reject" (click)="reject(item)">Reject</button>
+          </td>
+        </tr>
+
+        <!-- Empty state -->
+        <tr *ngIf="!list?.length" class="approvals-table__empty-row">
+          <td colspan="6">
+            <div class="approvals-table__empty">No pending user approvals found.</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

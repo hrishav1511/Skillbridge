@@ -1,0 +1,64 @@
+<section class="entity-list">
+  <header class="entity-list__header">
+    <div>
+      <h1>Tutors</h1>
+      <p>Every tutor account. Open a row for the full record.</p>
+    </div>
+    <span class="entity-list__count">{{ visibleTutors.length }} tutors</span>
+  </header>
+
+  <div class="entity-list__search">
+    <input type="text" [(ngModel)]="search" placeholder="Search by name, email or program"
+      aria-label="Search tutors" />
+  </div>
+
+  <p class="entity-list__state entity-list__state--error" *ngIf="error">{{ error }}</p>
+  <p class="entity-list__state entity-list__state--ok" *ngIf="notice">{{ notice }}</p>
+  <p class="entity-list__state" *ngIf="loading">Loading tutors...</p>
+
+  <div class="entity-list__table-wrapper" *ngIf="!loading">
+    <table class="entity-table">
+      <thead>
+        <tr>
+          <th>Tutor</th>
+          <th>Program</th>
+          <th>Approval</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tutor of visibleTutors" class="entity-table__row"
+          (click)="openTutor(tutor)" tabindex="0" role="button"
+          [attr.aria-label]="'Open ' + (tutor.user?.full_name || 'tutor')"
+          (keydown.enter)="openTutor(tutor)">
+          <td>
+            <div class="cell-primary">{{ tutor.user?.full_name || '—' }}</div>
+            <div class="cell-secondary">{{ tutor.user?.email || '—' }}</div>
+          </td>
+          <td>{{ tutor.academic_program || '—' }}</td>
+          <td>{{ tutor.approval_status || '—' }}</td>
+          <td>
+            <span class="state-badge"
+              [class.state-badge--on]="!isDisabled(tutor)"
+              [class.state-badge--off]="isDisabled(tutor)">
+              {{ isDisabled(tutor) ? 'Disabled' : 'Active' }}
+            </span>
+          </td>
+          <td>
+            <!-- Stop the row handler so the button does not also open the modal. -->
+            <button type="button" class="entity-btn"
+              [class.entity-btn--danger]="!isDisabled(tutor)"
+              (click)="$event.stopPropagation();
+                       setStatus(tutor, isDisabled(tutor) ? 'ACTIVE' : 'INACTIVE')">
+              {{ isDisabled(tutor) ? 'Activate' : 'Deactivate' }}
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!visibleTutors.length">
+          <td colspan="5" class="entity-table__empty">No tutors found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

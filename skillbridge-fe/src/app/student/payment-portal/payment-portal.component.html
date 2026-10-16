@@ -1,0 +1,111 @@
+<main class="payment-page">
+    <div class="payment-page__glow payment-page__glow--one"></div>
+    <div class="payment-page__glow payment-page__glow--two"></div>
+
+    <div class="payment-shell">
+        <a class="payment-back" routerLink="/student/dashboard">
+            <span aria-hidden="true">&#8592;</span> Back to dashboard
+        </a>
+
+        <header class="payment-header">
+            <div>
+                <p class="payment-kicker">Confirm booking</p>
+                <h1>Complete your booking</h1>
+                <p class="payment-header__copy">Reserve your place in a live learning service.</p>
+            </div>
+            <div class="payment-secure"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2-circle" viewBox="0 0 16 16">
+  <path d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0"/>
+  <path d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0z"/>
+</svg></span> Instant confirmation</div>
+        </header>
+
+        <div class="payment-steps" aria-label="Booking progress">
+            <div class="payment-step" [class.payment-step--active]="step === 'review'"
+                [class.payment-step--complete]="step !== 'review'">
+                <span>1</span><strong>Review service</strong>
+            </div>
+            <div class="payment-step-line" [class.payment-step-line--complete]="step !== 'review'"></div>
+            <div class="payment-step" [class.payment-step--active]="step === 'processing'"
+                [class.payment-step--complete]="step === 'success'"
+                [class.payment-step--error]="step === 'error'">
+                <span>2</span><strong>Confirming</strong>
+            </div>
+            <div class="payment-step-line" [class.payment-step-line--complete]="step === 'success'"></div>
+            <div class="payment-step" [class.payment-step--active]="step === 'success'">
+                <span>3</span><strong>Confirmation</strong>
+            </div>
+        </div>
+
+        <section *ngIf="step === 'review'" class="payment-card review-card payment-enter">
+            <div class="review-card__eyebrow">Your selected service</div>
+            <div class="review-card__top">
+                <div class="service-avatar">{{ serviceInitials }}</div>
+                <div class="review-card__title">
+                    <h2>{{ service?.service_name || 'Learning service' }}</h2>
+                    <p>with {{ service?.tutor?.full_name || 'your tutor' }}</p>
+                </div>
+                <div class="review-price"><strong>€{{ payableAmount | number:'1.2-2' }}</strong><span>per service</span>
+                </div>
+            </div>
+            <div class="review-card__description">{{ service?.description || 'Your personalised live learning service is
+                ready to be booked.' }}</div>
+            <div class="review-details">
+                <div><span class="detail-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                            fill="currentColor" class="bi bi-calendar" viewBox="0 0 16 16">
+                            <path
+                                d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z" />
+                        </svg></span><span><small>Date</small><strong>{{ service?.date ? (service.date | date:'EEE, d
+                            MMM y') : 'To be confirmed' }}</strong></span></div>
+                <div><span class="detail-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                            fill="currentColor" class="bi bi-clock" viewBox="0 0 16 16">
+                            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z" />
+                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0" />
+                        </svg></span><span><small>Time</small><strong>{{ service?.time ? (service.time | slice:0:5) :
+                            'To be confirmed' }}</strong></span></div>
+                <div><span class="detail-icon">&#9733;</span><span><small>Level</small><strong>{{ service?.level || 'All
+                            levels' }}</strong></span></div>
+            </div>
+            <div class="review-note"><span>&#10003;</span> Your place is held as soon as the tutor confirms this
+                request.
+            </div>
+            <button type="button" class="payment-button" (click)="confirmBooking()">Confirm booking
+                <span>&#8594;</span></button>
+        </section>
+
+        <section *ngIf="step === 'processing'" class="payment-card status-card payment-enter">
+            <div class="processing-animation"><span></span><span></span><span></span></div>
+            <p class="payment-kicker">Almost there</p>
+            <h2>Booking in progress</h2>
+            <p>Please don&apos;t close this window.<br>We&apos;re confirming your booking.</p>
+            <div class="processing-bar"><span></span></div><small>Confirming your place</small>
+        </section>
+
+        <section *ngIf="step === 'success'" class="payment-card status-card success-card payment-enter">
+            <div class="success-animation"><span>&#10003;</span></div>
+            <p class="payment-kicker">All done</p>
+            <h2>Booking confirmed</h2>
+            <p>Your service with {{ service?.tutor?.full_name || 'your tutor' }} is booked. A confirmation is on its
+                way.</p>
+            <div class="success-summary"><span>Service price</span><strong>€{{ payableAmount | number:'1.2-2'
+                    }}</strong>
+            </div>
+            <button type="button" class="payment-button" (click)="goToServices()">Go to my services
+                <span>&#8594;</span></button>
+        </section>
+
+        <section *ngIf="step === 'error'" class="payment-card status-card error-card payment-enter">
+            <div class="error-animation"><span>!</span></div>
+            <p class="payment-kicker payment-kicker--error">Booking not completed</p>
+            <h2>Something went wrong</h2>
+            <p>{{ bookingErrorMessage }}</p>
+            <div class="error-help">
+                <span aria-hidden="true">&#9432;</span>
+                <span>Nothing has been booked. You can safely try again.</span>
+            </div>
+            <div class="error-actions">
+                <button type="button" class="text-button" (click)="returnToDashboard()">Back to dashboard</button>
+                <button type="button" class="payment-button payment-button--error" (click)="retryBooking()">Try again <span>&#8635;</span></button>
+            </div>
+        </section>
+    </div>
+</main>

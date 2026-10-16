@@ -1,0 +1,32 @@
+<aside class="sidebar">
+      <div class="sidebar__top">
+        <div class="brand">
+          <div class="brand__logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>
+          </div>
+          <span class="brand__name">SkillBridge</span>
+        </div>
+
+        <nav class="nav">
+          <a class="nav__item dash" [routerLink]="['./']"><span class="nav__icon">▦</span> Dashboard <span class="nav__chev">›</span></a>
+          <a class="nav__item" [routerLink]="['./service-approval']"><span class="nav__icon">✓</span> Approvals <span class="nav__chev">›</span></a>
+          <a class="nav__item" [routerLink]="['./tutor-approval']"><span class="nav__icon">✓</span> Pending Users <span class="nav__chev">›</span></a>
+          <a class="nav__item" [routerLink]="['./tutor-visibility']"><span class="nav__icon">◉</span> Tutor Visibility <span class="nav__chev">›</span></a>
+          <a class="nav__item" [routerLink]="['./tutors']"><span class="nav__icon">▤</span> Tutors <span class="nav__chev">›</span></a>
+          <a class="nav__item" [routerLink]="['./services']"><span class="nav__icon">▥</span> Services <span class="nav__chev">›</span></a>
+          <!-- <a class="nav__item" href="#"><span class="nav__icon">⏱</span> Time off <span class="nav__chev">›</span></a>
+          <a class="nav__item" href="#"><span class="nav__icon">▤</span> Attendance <span class="nav__chev">›</span></a>
+          <a class="nav__item" href="#"><span class="nav__icon">▭</span> Payroll <span class="nav__chev">›</span></a>
+          <a class="nav__item" href="#"><span class="nav__icon">▥</span> Performance <span class="nav__chev">›</span></a>
+          <a class="nav__item" href="#"><span class="nav__icon">▢</span> Requirement <span class="nav__chev">›</span></a> -->
+          <a class="nav__item" [routerLink]="['./reports']"><span class="nav__icon">⚑</span> Reports <span class="nav__chev">›</span></a>
+          <a class="nav__item" [routerLink]="['./messages']"><span class="nav__icon">✉</span> Messages <span class="nav__chev">›</span></a>
+        </nav>
+      </div>
+
+      <div class="sidebar__bottom">
+        <!-- <a class="nav__item" href="#"><span class="nav__icon">?</span> Help Center</a> -->
+        <!-- <a class="nav__item" href="#"><span class="nav__icon">⚙</span> Setting</a> -->
+        <a class="nav__item" href="#"><span class="nav__icon">⎋</span> Logout</a>
+      </div>
+    </aside>

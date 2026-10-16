@@ -1,0 +1,37 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #090817 0%, #2b0f63 28%, #43149e 50%, #1d42c4 72%, #0e5d8d 100%);
+  background-attachment: fixed;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 22% 15%, rgba(156, 91, 255, 0.24), transparent 28%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 82% 80%, rgba(21, 208, 225, 0.18), transparent 32%);
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+// Ensure content sits above the background
+div {
+  position: relative;
+  z-index: 1;
+}

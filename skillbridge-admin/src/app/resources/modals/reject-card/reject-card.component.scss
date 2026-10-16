@@ -1,0 +1,549 @@
+:host{
+
+    display:block;
+}
+
+.approval-modal{
+
+    width:100%;
+
+    max-width:100%;
+
+    box-sizing:border-box;
+
+    background:#fff;
+
+    border-radius:12px;
+
+    padding:20px;
+
+    max-height:90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    box-shadow:
+    0 24px 80px rgba(15,23,42,.12);
+
+    animation:popup .25s ease;
+}
+
+@keyframes popup{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(12px) scale(.96);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:none;
+
+    }
+
+}
+
+.modal-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    gap:24px;
+
+    margin-bottom:30px;
+}
+
+.modal-header h2{
+
+    margin:10px 0 8px;
+
+    font-size:30px;
+
+    font-weight:700;
+
+    color:#111827;
+}
+
+.subtitle{
+
+    color:#6b7280;
+
+    margin:0;
+
+    font-size:15px;
+}
+
+.revision-badge{
+
+    display:inline-flex;
+
+    padding:6px 14px;
+
+    border-radius:999px;
+
+    background:#eef2ff;
+
+    color:#4f46e5;
+
+    font-size:12px;
+
+    font-weight:700;
+
+    letter-spacing:.08em;
+}
+
+.status-badge{
+
+    padding:8px 18px;
+
+    border-radius:999px;
+
+    background:#fef3c7;
+
+    color:#92400e;
+
+    font-weight:600;
+
+    font-size:13px;
+}
+
+.info-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:18px;
+
+    margin-bottom:26px;
+}
+
+.info-card{
+
+    border: 1px solid #e5e7eb;
+    min-width:0;
+    border-radius: 8px;
+    padding: 18px;
+}
+
+.info-card label{
+
+    display:block;
+
+    color:#94a3b8;
+
+    font-size:12px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.08em;
+
+    margin-bottom:8px;
+}
+
+.info-card span{
+
+    font-weight:600;
+
+    color:#111827;
+    overflow-wrap:anywhere;
+}
+
+.description-card,
+.link-card{
+
+    // background:#f8fafc;
+
+    // border:1px solid #e5e7eb;
+
+    border-radius:16px;
+
+    padding:20px;
+
+    margin-bottom:18px;
+}
+
+.description-card label,
+.link-card label{
+
+    display:block;
+
+    margin-bottom:10px;
+
+    font-size:12px;
+
+    // font-weight:700;
+
+    letter-spacing:.08em;
+
+    color:#94a3b8;
+
+    text-transform:uppercase;
+}
+
+.description-card p{
+
+    margin:0;
+
+    color:#374151;
+
+    line-height:1.8;
+}
+
+.link-card a{
+
+    color:#4f46e5;
+
+    text-decoration:none;
+
+    font-weight:600;
+
+    word-break:break-all;
+}
+
+.actions{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:16px;
+
+    margin-top:28px;
+}
+
+.btn{
+
+    height: 50px;
+    padding: 0 15px;
+    border: none;
+    border-radius: 9px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.secondary{
+
+    background:#f3f4f6;
+
+    color:#374151;
+}
+
+.secondary:hover{
+
+    background:#e5e7eb;
+}
+
+.primary{
+
+    background:linear-gradient(135deg,#6366f1,#7c3aed);
+
+    color:white;
+}
+
+.error{
+
+    background:linear-gradient(135deg,#f16390,#e81717);
+
+    color:white;
+}
+
+.primary:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 16px 30px rgba(99,102,241,.3);
+}
+.error:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 16px 30px rgba(241,99,144,.3);
+}
+
+@media(max-width:768px){
+
+    .approval-modal{
+
+        padding:24px;
+    }
+
+    .modal-header{
+
+        flex-direction:column;
+    }
+
+    .info-grid{
+
+        grid-template-columns:1fr;
+    }
+
+    .actions{
+
+        flex-direction:column-reverse;
+    }
+
+    .btn{
+
+        width:100%;
+    }
+
+}
+
+.rejection-card {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #e8ecf4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #344054;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    border: 1px solid #d0d5dd;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+
+    &:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+
+    &::placeholder {
+      color: #98a2b3;
+    }
+  }
+}
+
+.error-star{
+    color:#ef4444;
+}
+
+.eyebrow {
+    color: #7c6ae0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.eyebrow span {
+    margin-left: 8px;
+    color: #667085;
+}
+
+.review-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.link-card {
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+}
+
+.link-card span {
+    color: #475467;
+    font-weight: 600;
+}
+
+.moderation-panel {
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid #fed7aa;
+    border-radius: 14px;
+    background: #fff7ed;
+    color: #7c2d12;
+}
+
+.moderation-panel__heading,
+.moderation-meta,
+.moderation-categories {
+    display: flex;
+    gap: 12px;
+}
+
+.moderation-panel__heading {
+    align-items: flex-start;
+}
+
+.moderation-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    place-items: center;
+    border-radius: 10px;
+    background: #c2410c;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.moderation-panel p {
+    margin: 4px 0 0;
+    color: #9a3412;
+    font-size: 13px;
+}
+
+.moderation-meta {
+    flex-wrap: wrap;
+    margin: 16px 0 12px 46px;
+    color: #9a3412;
+    font-size: 12px;
+}
+
+.moderation-categories {
+    flex-wrap: wrap;
+    margin-left: 46px;
+}
+
+.moderation-scores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 0 46px;
+}
+
+.moderation-scores span {
+    padding: 6px 9px;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    color: #9a3412;
+    font-size: 11px;
+}
+
+.moderation-scores b {
+    margin-left: 4px;
+}
+
+.moderation-categories span {
+    padding: 6px 9px;
+    border-radius: 8px;
+    background: #ffedd5;
+    color: #9a3412;
+    font-size: 11px;
+}
+
+.moderation-categories b {
+    display: block;
+    margin-top: 2px;
+    color: #667085;
+    font-size: 10px;
+}
+
+.moderation-categories .moderation-category--active {
+    background: #fed7aa;
+    color: #9a3412;
+}
+
+@media(max-width:768px){
+    .review-grid { grid-template-columns: 1fr; }
+    .moderation-meta, .moderation-categories, .moderation-scores { margin-left: 0; }
+}
+/* ---------- Uploaded media ---------- */
+.media-panel {
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid #e7e6f2;
+  border-radius: 12px;
+  background: #fbfbfe;
+}
+
+.media-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.media-panel__head label {
+  color: #6b6890;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.media-count {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #efeafc;
+  color: #4b3ba8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.media-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.media-tile {
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid #e7e6f2;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.media-tile img,
+.media-tile video {
+  display: block;
+  width: 100%;
+  height: 120px;
+  background: #f4f3f9;
+  object-fit: cover;
+}
+
+.media-tile video { object-fit: contain; }
+
+/* A file whose URL no longer resolves still has to be visible as a row, so
+   the admin can tell "no media" from "media that failed to load". */
+.media-tile--broken::before {
+  display: block;
+  padding: 38px 8px;
+  background: #f4f3f9;
+  color: #6b6890;
+  content: 'Preview unavailable';
+  font-size: 11px;
+  text-align: center;
+}
+
+.media-tile figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
+.media-kind { color: #6b6890; font-weight: 700; }
+.media-tile figcaption a { color: #4b3ba8; font-weight: 700; text-decoration: none; }
+.media-tile figcaption a:hover { text-decoration: underline; }
+
+.media-empty { margin: 0; color: #6b6890; font-size: 12px; }

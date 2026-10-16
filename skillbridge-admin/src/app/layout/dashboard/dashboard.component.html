@@ -1,0 +1,165 @@
+<!-- Greeting -->
+ <main class="main">
+      <section class="greeting">
+        <h1>Hi, Anderson N. Horvath</h1>
+        <p>This is your HR report so far</p>
+      </section>
+
+      <!-- Top grid -->
+      <section class="grid-top">
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-card__head">
+              <span class="stat-card__icon stat-card__icon--lilac">👤</span>
+              <span class="badge badge--up">↑ 25%</span>
+            </div>
+            <h2>{{ dashboardData.total_students | number }}</h2>
+            <p>Total Students</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card__head">
+              <span class="stat-card__icon stat-card__icon--peach">📄</span>
+              <span class="badge badge--down">↓ 15%</span>
+            </div>
+            <h2>{{ dashboardData.total_tutors | number }}</h2>
+            <p>Total Tutors</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card__head">
+              <span class="stat-card__icon stat-card__icon--pink">👥</span>
+              <span class="badge badge--down">↓ 15%</span>
+            </div>
+            <h2>{{ dashboardData.pending_items | number }}</h2>
+            <p>Pending actions</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card__head">
+              <span class="stat-card__icon stat-card__icon--mint">👤</span>
+              <span class="badge badge--up">↑ 25%</span>
+            </div>
+            <h2>{{ dashboardData.total_services | number }}</h2>
+            <p>Total Services</p>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <h3>Services completed</h3>
+            <span class="chart-total">{{ dashboardData.total_services | number }} total</span>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot--dark"></i> Completed services</span>
+          </div>
+          <div class="chart">
+            <canvas #servicesChart aria-label="Completed services by month"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom grid -->
+      <section class="grid-bottom">
+        <div class="employees-card">
+          <div class="employees-card__head">
+            <h3>Pending Account Approvals</h3>
+            <span class="chart-total">{{ pendingTutors.length | number }} pending</span>
+          </div>
+
+          <table class="emp-table">
+            <thead>
+              <tr><th>Tutor Name</th><th>Email</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let tutor of pendingTutors">
+                <td>{{ tutor.user?.full_name || '-' }}</td>
+                <td>{{ tutor.user?.email || '-' }}</td>
+                <!-- <td>{{ tutor.academic_program || '-' }}</td> -->
+              </tr>
+              <tr *ngIf="!pendingTutors.length">
+                <td colspan="3" class="empty-state">No pending approvals</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="total-card">
+          <div class="total-card__head">
+            <h3>Community mix</h3>
+            <span class="chart-total">{{ dashboardData.total_students + dashboardData.total_tutors | number }} members</span>
+          </div>
+          <div class="donut">
+            <svg viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="48" class="ring-bg"/>
+              <circle cx="60" cy="60" r="48" class="ring ring--1" [style.stroke-dasharray]="studentShare * 3.01 + ' 301'"/>
+              <circle cx="60" cy="60" r="48" class="ring ring--2" [style.stroke-dasharray]="tutorShare * 3.01 + ' 301'" [style.stroke-dashoffset]="-studentShare * 3.01"/>
+            </svg>
+            <div class="donut__center">
+              <strong>{{ dashboardData.total_students + dashboardData.total_tutors | number }}</strong>
+              <span>Total members</span>
+            </div>
+          </div>
+          <ul class="donut-legend">
+            <li><i class="dot dot--purple"></i> Students {{ studentShare | number:'1.0-0' }}%</li>
+            <li><i class="dot dot--lilac"></i> Tutors {{ tutorShare | number:'1.0-0' }}%</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="grid-bottom">
+        <div class="employees-card">
+          <div class="employees-card__head"><h3>Tutor Reports</h3><span class="chart-total">{{ tutorReports.length }} open</span></div>
+          <table class="emp-table">
+            <thead><tr><th>Tutor</th><th>Reported by</th><th>Date</th><th>Reason</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let report of tutorReports">
+                <td class="report-entity">
+                  <img *ngIf="report.tutor_profile_picture_url" class="report-avatar" [src]="report.tutor_profile_picture_url" [alt]="report.tutor_name || 'Tutor'" />
+                  <span>{{ report.tutor_name || 'Unknown tutor' }}</span>
+                </td>
+                <td>{{ report.reporter_name || 'Unknown' }}</td>
+                <td>{{ report.reported_at ? (report.reported_at | date:'short') : '—' }}</td>
+                <td>{{ report.reason }}</td>
+                <td><a class="report-manage" [routerLink]="['/panel/reports']" [queryParams]="{ tab: 'tutor' }">Manage</a></td>
+              </tr>
+              <tr *ngIf="!tutorReports.length"><td colspan="5" class="empty-state">No tutor reports</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="employees-card">
+          <div class="employees-card__head"><h3>Service Reports</h3><span class="chart-total">{{ serviceReports.length }} open</span></div>
+          <table class="emp-table">
+            <thead><tr><th>Service</th><th>Reported by</th><th>Date</th><th>Reason</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let report of serviceReports">
+                <td>{{ report.service_name || 'Unknown service' }}</td>
+                <td>{{ report.reporter_name || 'Unknown' }}</td>
+                <td>{{ report.reported_at ? (report.reported_at | date:'short') : '—' }}</td>
+                <td>{{ report.reason }}</td>
+                <td><a class="report-manage" [routerLink]="['/panel/reports']" [queryParams]="{ tab: 'service' }">Manage</a></td>
+              </tr>
+              <tr *ngIf="!serviceReports.length"><td colspan="5" class="empty-state">No service reports</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="grid-bottom">
+        <div class="employees-card">
+          <div class="employees-card__head"><h3>Review Reports</h3><span class="chart-total">{{ reviewReports.length }} open</span></div>
+          <table class="emp-table">
+            <thead><tr><th>Review</th><th>Rating</th><th>Reason</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let report of reviewReports">
+                <td>{{ report.review_type }}: {{ report.review_comment || report.review_id }}</td>
+                <td>{{ report.review_rating }}</td>
+                <td>{{ report.reason }}</td>
+                <td><a class="report-manage" [routerLink]="['/panel/reports']"
+                    [queryParams]="{ tab: 'review' }">Manage</a></td>
+              </tr>
+              <tr *ngIf="!reviewReports.length"><td colspan="4" class="empty-state">No review reports</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      </main>

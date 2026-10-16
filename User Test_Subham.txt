@@ -1,0 +1,5 @@
+in the test     email address not corresponding to CAPS
+
+
+no passowrd error when i enterend worng username
+

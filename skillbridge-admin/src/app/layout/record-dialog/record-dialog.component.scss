@@ -1,0 +1,175 @@
+$surface: #ffffff;
+$border:  #e7e6f2;
+$text:    #1f1d3d;
+$muted:   #6b6890;
+$primary: #4b3ba8;
+$danger:  #c33f50;
+
+.record-dialog {
+  display: flex;
+  overflow-y: auto;
+  width: min(720px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  padding: 22px;
+  border-radius: 14px;
+  background: $surface;
+  box-shadow: 0 24px 54px rgba(31, 29, 61, .26);
+  color: $text;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.record-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.record-dialog__ident { display: flex; align-items: center; gap: 12px; }
+
+.record-dialog__avatar {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.record-dialog__eyebrow {
+  margin: 0 0 3px;
+  color: $muted;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.record-dialog__head h2 { margin: 0; font-size: 19px; }
+
+.record-dialog__status {
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: #e7f7ee;
+  color: #12734b;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.record-dialog__status--off { background: #fdecee; color: $danger; }
+
+.record-dialog__grid {
+  display: grid;
+  margin: 0;
+  gap: 12px 18px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.record-dialog__field dt {
+  margin-bottom: 3px;
+  color: $muted;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.record-dialog__field dd {
+  margin: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.record-dialog__block h3 {
+  margin: 0 0 8px;
+  color: $muted;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.record-dialog__block p { margin: 0; font-size: 13px; line-height: 1.6; }
+.record-dialog__muted { color: $muted; font-size: 12.5px; }
+
+.record-media__count {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #efeafc;
+  color: $primary;
+  letter-spacing: 0;
+}
+
+.record-media {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+}
+
+.record-media__tile {
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid $border;
+  border-radius: 10px;
+}
+
+.record-media__tile img,
+.record-media__tile video {
+  display: block;
+  width: 100%;
+  height: 115px;
+  background: #f4f3f9;
+  object-fit: cover;
+}
+
+.record-media__tile video { object-fit: contain; }
+
+/* Keep a failed file visible as a row, so "no media" and "media that would
+   not load" stay distinguishable. */
+.record-media__tile--broken::before {
+  display: block;
+  padding: 36px 8px;
+  background: #f4f3f9;
+  color: $muted;
+  content: 'Preview unavailable';
+  font-size: 11px;
+  text-align: center;
+}
+
+.record-media__tile figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  color: $muted;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.record-media__tile figcaption a { color: $primary; text-decoration: none; }
+.record-media__tile figcaption a:hover { text-decoration: underline; }
+
+.record-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.record-btn {
+  padding: 8px 14px;
+  border: 1px solid $border;
+  border-radius: 9px;
+  background: $surface;
+  color: $muted;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+
+.record-btn:hover { border-color: $primary; background: #efeafc; color: $primary; }
+.record-btn--danger { border-color: #e4b5b8; color: $danger; }
+.record-btn--danger:hover { border-color: $danger; background: $danger; color: #fff; }

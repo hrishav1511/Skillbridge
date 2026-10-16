@@ -1,0 +1,251 @@
+<div class="drawer-container" [class.closing]="isClosing">
+
+  <!-- Header -->
+  <div class="drawer-header">
+    <div>
+      <h2 class="text-xl font-semibold">Edit Profile</h2>
+      <p class="mt-1 text-sm text-gray-400">
+        Update your personal information
+      </p>
+    </div>
+
+    <button
+      type="button"
+      (click)="close()"
+      class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-800 hover"
+    >
+      ✕
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="drawer-body">
+
+<form [formGroup]="profileForm" class="flex h-full flex-col">
+
+  <div class="flex-1 space-y-6 overflow-y-auto pr-2">
+
+    <!-- Full Name -->
+    <div>
+      <label class="mb-2 block text-sm font-medium text-gray-300">
+        Full Name
+      </label>
+
+      <input
+        type="text"
+        formControlName="full_name" readonly
+        class="w-full rounded-xl border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+      />
+    </div>
+
+    <!-- Academic Program -->
+    <div>
+      <label class="mb-2 block text-sm font-medium text-gray-300">
+        Academic Program
+      </label>
+
+      <input
+        type="text"
+        formControlName="academic_program"
+        placeholder="MSc Global Software Development"
+        class="w-full rounded-xl border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+      />
+      <div
+  *ngIf="f['academic_program'].touched && f['academic_program'].invalid"
+  class="mt-1 text-sm text-red-400"
+>
+  <p *ngIf="f['academic_program'].errors?.['required']">
+    Academic program is required.
+  </p>
+    </div>
+    </div>
+
+    <!-- Phone -->
+    <div>
+      <label class="mb-2 block text-sm font-medium text-gray-300">
+        Phone Number
+      </label>
+
+      <input
+        type="tel"
+        formControlName="phone"
+        [attr.maxlength]="phoneMaxLength"
+        placeholder="+49 170 1234567"
+        class="w-full rounded-xl border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+      />
+
+      <div
+        *ngIf="f['phone'].touched && f['phone'].invalid"
+        class="mt-1 text-sm text-red-400"
+      >
+        <p *ngIf="f['phone'].errors?.['required']">
+          Phone number is required.
+        </p>
+
+        <p *ngIf="f['phone'].errors?.['pattern']">
+          Use 8-20 characters: digits, spaces, and + - ( ) only.
+        </p>
+
+        <p *ngIf="f['phone'].errors?.['maxlength']">
+          Phone number must be {{ phoneMaxLength }} characters or fewer.
+        </p>
+      </div>
+
+      <p *ngIf="f['phone'].errors?.['server']" class="mt-1 text-sm text-red-400">
+        {{ f['phone'].errors?.['server'] }}
+      </p>
+    </div>
+
+    <!-- Teaching Style -->
+    <div>
+      <label class="mb-2 block text-sm font-medium text-gray-300">
+        Teaching Style
+      </label>
+
+      <textarea
+        rows="4"
+        formControlName="teaching_style"
+        [attr.maxlength]="teachingStyleMaxLength"
+        placeholder="Explain your teaching methodology..."
+        class="w-full rounded-xl border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+      ></textarea>
+      <div
+  *ngIf="f['teaching_style'].touched && f['teaching_style'].invalid"
+  class="mt-1 text-sm text-red-400"
+>
+  <p *ngIf="f['teaching_style'].errors?.['required']">
+    Teaching style is required.
+  </p>
+
+  <p *ngIf="f['teaching_style'].errors?.['minlength']">
+    Please provide at least 20 characters.
+  </p>
+
+  <p *ngIf="f['teaching_style'].errors?.['maxlength']">
+    Teaching style must be {{ teachingStyleMaxLength }} characters or fewer.
+  </p>
+
+  <p *ngIf="f['teaching_style'].errors?.['server']">
+    {{ f['teaching_style'].errors?.['server'] }}
+  </p>
+</div>
+    </div>
+
+    <!-- Subject Tags -->
+    <div>
+      <label class="mb-2 block text-sm font-medium text-gray-300">
+        Subject Tags
+      </label>
+
+      <div class="tag-input-box">
+        <span class="tag-pill" *ngFor="let tag of tags; let i = index">
+          {{ tag }}
+          <button type="button" class="tag-pill__remove" (click)="removeTag(i)" [attr.aria-label]="'Remove ' + tag">✕</button>
+        </span>
+
+        <input
+          type="text"
+          [(ngModel)]="tagInput"
+          [ngModelOptions]="{standalone: true}"
+          (keydown.enter)="$event.preventDefault(); addTag()"
+          placeholder="Type a subject and press Enter"
+          class="tag-input"
+        />
+      </div>
+      <p class="mt-1 text-xs text-gray-400">Press Enter to add a tag. Changes save when you click Save Changes.</p>
+    </div>
+
+    <!-- Bio -->
+    <div>
+      <label class="mb-2 block text-sm font-medium text-gray-300">
+        Bio
+      </label>
+
+      <textarea
+        rows="5"
+        formControlName="bio"
+        [attr.maxlength]="bioMaxLength"
+        placeholder="Tell students about yourself..."
+        class="w-full rounded-xl border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+      ></textarea>
+      <p class="mt-1 text-xs text-gray-400">
+        {{ (f['bio'].value || '').length }} / {{ bioMaxLength }} characters
+      </p>
+      <div
+  *ngIf="f['bio'].touched && f['bio'].invalid"
+  class="mt-1 text-sm text-red-400"
+>
+  <p *ngIf="f['bio'].errors?.['required']">
+    Bio is required.
+  </p>
+
+  <p *ngIf="f['bio'].errors?.['minlength']">
+    Bio must contain at least 30 characters.
+  </p>
+
+  <p *ngIf="f['bio'].errors?.['maxlength']">
+    Bio must be {{ bioMaxLength }} characters or fewer.
+  </p>
+
+  <p *ngIf="f['bio'].errors?.['server']">
+    {{ f['bio'].errors?.['server'] }}
+  </p>
+</div>
+    </div>
+
+    <!-- Visible Profile -->
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-white">
+          Visible Profile
+        </p>
+        <p class="text-xs text-gray-400">
+          Show your profile in tutor search results
+        </p>
+      </div>
+
+      <input
+        type="checkbox"
+        formControlName="is_visible"
+        class="h-5 w-5"
+      />
+    </div>
+
+    <!-- Accepting Requests -->
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-white">
+          Accepting Requests
+        </p>
+        <p class="text-xs text-gray-400">
+          Allow students to book services
+        </p>
+      </div>
+
+      <input
+        type="checkbox"
+        formControlName="accepting_requests"
+        class="h-5 w-5"
+      />
+    </div>
+
+  </div>
+
+</form>
+
+
+  </div>
+
+  <div class="profile-footer">
+    <p *ngIf="serverError" class="mb-2 text-sm text-red-400">{{ serverError }}</p>
+
+    <button
+      type="button"
+      (click)="save()"
+      class="w-full rounded-xl bg-blue-600 px-4 py-3 font-medium text-white transition hover:bg-blue-500"
+    >
+      Save Changes
+    </button>
+  </div>
+
+</div>

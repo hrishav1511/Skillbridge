@@ -1,0 +1,267 @@
+// =========================================================
+// Peppo — Sign in
+// Compile with: sass styles.scss styles.css
+// =========================================================
+
+// ---- Tokens --------------------------------------------------
+$c-primary:        #5a6cf5;
+$c-primary-hover:  #4858e6;
+$c-text:           #0f172a;
+$c-text-muted:     #6b7280;
+$c-text-soft:      #9aa3b2;
+$c-border:         #e5e7eb;
+$c-border-strong:  #d1d5db;
+$c-surface:        #ffffff;
+$c-input-bg:       #f7f8fb;
+
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 20px;
+
+$shadow-card: 0 30px 60px -20px rgba(40, 50, 120, 0.25),
+              0 10px 25px -10px rgba(40, 50, 120, 0.15);
+
+$font-sans: "DM Sans", sans-serif;
+
+// Gradient background (matches reference)
+$bg-gradient:
+  radial-gradient(120% 80% at 80% 30%, #e6ecff 0%, transparent 55%),
+  radial-gradient(90%  70% at 20% 80%, #a99bff 0%, transparent 55%),
+  linear-gradient(135deg, #6a7bf0 0%, #8fa6ff 45%, #cfd9ff 100%);
+
+// ---- Reset ---------------------------------------------------
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: $font-sans;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+button { font-family: inherit; cursor: pointer; border: 0; background: none; }
+a { text-decoration: none; color: inherit; }
+
+// ---- Layout --------------------------------------------------
+.auth-page {
+   min-height: 100vh;
+  background: $bg-gradient;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  padding: 24px;
+}
+
+.auth-header h1 {
+  font-family: "Space Grotesk", $font-sans;
+}
+
+.back-link {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: .95;
+
+  &:hover { opacity: 1; }
+}
+
+// ---- Brand ---------------------------------------------------
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+
+  &-mark {
+    display: inline-grid;
+    place-items: center;
+    width: 28px; height: 28px;
+    color: #fff;
+  }
+  &-name {
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 14px;
+  }
+}
+
+// ---- Card ----------------------------------------------------
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: $c-surface;
+  border-radius: $radius-lg;
+  padding: 36px 36px 28px;
+  box-shadow: $shadow-card;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  p {
+    margin: 0;
+    color: $c-text-muted;
+    font-size: 14px;
+  }
+}
+
+// ---- Form ----------------------------------------------------
+.auth-form { display: flex; flex-direction: column; gap: 18px; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $c-text;
+  }
+
+  input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    background: $c-input-bg;
+    border: 1px solid $c-border;
+    border-radius: $radius-md;
+    font-size: 14px;
+    color: $c-text;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+
+    &::placeholder { color: $c-text-soft; }
+    &:focus {
+      outline: none;
+      background: #fff;
+      border-color: $c-primary;
+      box-shadow: 0 0 0 4px rgba($c-primary, .15);
+    }
+  }
+}
+
+.input-with-icon {
+  position: relative;
+
+  input { padding-right: 44px; }
+
+  .icon-button {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    color: $c-text-soft;
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    border-radius: 6px;
+
+    &:hover { color: $c-text-muted; }
+  }
+}
+
+// ---- Row: remember + forgot ---------------------------------
+.row-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: $c-text-muted;
+  cursor: pointer;
+  user-select: none;
+
+  input { position: absolute; opacity: 0; pointer-events: none; }
+
+  .box {
+    width: 16px; height: 16px;
+    border: 1.5px solid $c-border-strong;
+    border-radius: 4px;
+    background: #fff;
+    display: inline-block;
+    position: relative;
+    transition: all .15s;
+  }
+  input:checked + .box {
+    background: $c-primary;
+    border-color: $c-primary;
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 4px; top: 1px;
+      width: 5px; height: 9px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+  }
+}
+
+.link {
+  color: $c-primary;
+  font-weight: 600;
+  &:hover { color: $c-primary-hover; }
+}
+
+// ---- Buttons -------------------------------------------------
+.btn {
+  width: 100%;
+  height: 46px;
+  border-radius: $radius-md;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background .15s, border-color .15s, transform .05s, box-shadow .15s;
+
+  &:active { transform: translateY(1px); }
+}
+
+.btn-primary {
+  background: $c-primary;
+  color: #fff;
+  box-shadow: 0 8px 20px -8px rgba($c-primary, .6);
+
+  &:hover { background: $c-primary-hover; }
+}
+
+.btn-google {
+  background: #fff;
+  color: $c-text;
+  border: 1px solid $c-border;
+
+  &:hover { background: #fafbff; border-color: $c-border-strong; }
+}
+
+// ---- Footer --------------------------------------------------
+.auth-footer {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: $c-text-muted;
+}
+
+// ---- Responsive ----------------------------------------------
+@media (max-width: 480px) {
+  .auth-card { padding: 28px 22px 22px; border-radius: 16px; }
+  .auth-header h1 { font-size: 20px; }
+}

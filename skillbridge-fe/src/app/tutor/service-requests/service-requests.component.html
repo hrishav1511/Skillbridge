@@ -1,0 +1,68 @@
+<div class="requests-page">
+  <header class="requests-header">
+    <button type="button" class="requests-back" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </button>
+    <div>
+      <p class="requests-eyebrow">Service requests</p>
+      <h1>All requests</h1>
+      <p class="requests-sub">Accept, decline, cancel, or reschedule requests for your services.</p>
+    </div>
+  </header>
+
+  <div class="requests-filters">
+    <label class="requests-filter">
+      <span>Status</span>
+      <select
+        [value]="selectedStatus"
+        (change)="onStatusChange($any($event.target).value)"
+        aria-label="Filter requests by status">
+        <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+      </select>
+    </label>
+    <span class="requests-count" *ngIf="!loading">{{ totalRecords }} requests</span>
+  </div>
+
+  <p class="requests-state requests-state--error" *ngIf="error">{{ error }}</p>
+  <p class="requests-state" *ngIf="loading">Loading service requests...</p>
+
+  <div class="requests-list" *ngIf="!loading && requests.length">
+    <article class="request-card" *ngFor="let booking of requests">
+      <span class="request-card__icon"><i class="bi bi-calendar-check"></i></span>
+
+      <div class="request-card__body">
+        <strong>{{ booking.service?.service_name || 'Service request' }}</strong>
+        <p>{{ booking.scheduled_start_at | date:'medium' }}</p>
+        <p *ngIf="booking.student?.user?.full_name">
+          Student: {{ booking.student.user.full_name }}
+        </p>
+        <p class="request-card__proposal" *ngIf="pendingProposal(booking) as proposal">
+          Proposed: {{ proposal.proposed_start_at | date:'medium' }}
+        </p>
+      </div>
+
+      <span class="request-card__status" [attr.data-status]="bookingStatus(booking)">
+        {{ bookingStatus(booking) }}
+      </span>
+
+      <div class="request-card__actions">
+        <button type="button" class="btn btn-primary" *ngIf="bookingStatus(booking) === 'PENDING'" (click)="updateBooking(booking, 'accept')">Accept</button>
+        <button type="button" class="btn" *ngIf="bookingStatus(booking) === 'PENDING'" (click)="updateBooking(booking, 'decline')">Decline</button>
+        <button type="button" class="btn" *ngIf="bookingStatus(booking) === 'ACCEPTED' && !pendingProposal(booking)" (click)="proposeReschedule(booking)">Reschedule</button>
+        <button type="button" class="btn btn-primary" *ngIf="canRespondToProposal(booking)" (click)="respondToProposal(booking, true)">Accept time</button>
+        <button type="button" class="btn" *ngIf="canRespondToProposal(booking)" (click)="respondToProposal(booking, false)">Reject time</button>
+        <button type="button" class="btn" *ngIf="bookingStatus(booking) === 'ACCEPTED'" (click)="cancelService(booking)">Cancel</button>
+      </div>
+    </article>
+  </div>
+
+  <div class="requests-state" *ngIf="!loading && !requests.length && !error">
+    {{ selectedStatus ? 'No requests with this status.' : 'No service requests yet.' }}
+  </div>
+
+  <nav class="requests-pager" *ngIf="!loading && totalPages > 1" aria-label="Service request pages">
+    <button type="button" (click)="goToPage(page - 1)" [disabled]="page <= 1">Previous</button>
+    <span>Page {{ page }} of {{ totalPages }}</span>
+    <button type="button" (click)="goToPage(page + 1)" [disabled]="page >= totalPages">Next</button>
+  </nav>
+</div>

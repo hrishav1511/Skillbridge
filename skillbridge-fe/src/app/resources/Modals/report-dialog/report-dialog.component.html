@@ -1,0 +1,51 @@
+<div class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="report-dialog-title">
+  <header class="report-dialog__header">
+    <div class="report-dialog__icon" aria-hidden="true">
+      <i class="bi bi-flag"></i>
+    </div>
+    <div>
+      <p class="report-dialog__eyebrow">Report</p>
+      <h2 id="report-dialog-title">Report this {{ lowercaseLabel }}</h2>
+    </div>
+    <button type="button" class="report-dialog__close" (click)="close()" [disabled]="submitting" aria-label="Close report dialog">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </header>
+
+  <div class="report-dialog__body">
+    <p class="report-dialog__message" *ngIf="data.entityName">
+      You are reporting <strong>{{ data.entityName }}</strong>. An administrator will review this.
+    </p>
+    <p class="report-dialog__message" *ngIf="!data.entityName">
+      Tell us what is wrong. An administrator will review this report.
+    </p>
+
+    <label class="report-dialog__label" for="report-reason">
+      Reason <span>(required, {{ minLength }}-{{ maxLength }} characters)</span>
+    </label>
+    <textarea
+      id="report-reason"
+      [(ngModel)]="reason"
+      (blur)="touched = true"
+      rows="5"
+      [attr.maxlength]="maxLength"
+      placeholder="Describe the problem..."
+      [disabled]="submitting"></textarea>
+
+    <p class="report-dialog__counter">{{ trimmedLength }} / {{ maxLength }}</p>
+
+    <p class="report-dialog__error" *ngIf="touched && isTooShort">
+      Please provide at least {{ minLength }} characters.
+    </p>
+
+    <p class="report-dialog__error" *ngIf="serverError">{{ serverError }}</p>
+  </div>
+
+  <footer class="report-dialog__footer">
+    <button type="button" class="report-dialog__back" (click)="close()" [disabled]="submitting">Cancel</button>
+    <button type="button" class="report-dialog__confirm" (click)="submit()" [disabled]="submitting">
+      <i class="bi" [class.bi-arrow-repeat]="submitting" [class.bi-flag]="!submitting"></i>
+      {{ submitting ? 'Submitting...' : 'Submit report' }}
+    </button>
+  </footer>
+</div>

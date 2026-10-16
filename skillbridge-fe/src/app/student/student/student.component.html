@@ -1,0 +1,157 @@
+<div class="min-h-full app-shell">
+    <!-- ============ TOP NAV ============ -->
+    <nav class="app-nav">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <div class="flex items-center gap-8">
+                    <div class="shrink-0">
+                        <a [routerLink]="['/student/dashboard']" class="app-nav__logo" aria-label="Go to dashboard">
+                            <img src="/assets/minlogo.png" alt="SkillBridge" class="size-8" />
+                        </a>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="flex items-center gap-1">
+                            <nav class="">
+
+                                <a routerLink="/student/dashboard" routerLinkActive="app-nav__link--active"
+                                    [routerLinkActiveOptions]="{ exact: true }" class="app-nav__link">
+
+                                    Dashboard
+
+                                </a>
+
+                                <a routerLink="/student/chats" *ngIf="this.loggedInUser['role'] !==  'guest'" routerLinkActive="app-nav__link--active" class="app-nav__link">
+
+                                    Messages <span class="nav-badge" *ngIf="unreadConversations > 0"
+                                        [attr.aria-label]="unreadConversations + ' conversations with unread messages'">{{ unreadConversations > 9 ? '9+' : unreadConversations }}</span>
+
+                                </a>
+                                <a routerLink="/student/booked-services" *ngIf="this.loggedInUser['role'] !==  'guest'" routerLinkActive="app-nav__link--active" class="app-nav__link">
+
+                                    Services
+
+                                </a>
+
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden md:block">
+                    <div class="flex items-center gap-3">
+                        <div class="notification-menu" appDismissableMenu=".notification-menu__toggle">
+                            <input id="student-notifications" class="notification-menu__toggle" type="checkbox">
+                            <label for="student-notifications" class="app-nav__icon-btn" aria-label="View notifications">
+                                <span class="app-nav__dot"></span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                                    aria-hidden="true" class="size-5">
+                                    <path
+                                        d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </label>
+                            <div class="notification-menu__tray">
+                                <div class="notification-menu__heading">
+                                    <span>Notifications</span>
+                                    <span class="notification-menu__status">{{ notifications.length }} new</span>
+                                </div>
+                                <div class="notification-menu__list">
+                                    <a *ngFor="let notification of notifications" class="notification-menu__item" (click)="openNotification(notification)">
+                                        <span class="notification-menu__item-dot"></span>
+                                        <span><strong>{{ notification.title }}</strong><small>{{ notification.message }}</small><time>{{ notification.created_at | date: 'shortTime' }}</time></span>
+                                    </a>
+                                </div>
+                                <a routerLink="/student/notifications" class="notification-menu__item">View all notifications</a>
+                                <label for="student-notifications" class="notification-menu__close" aria-label="Close notifications">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="student-profile-menu">
+                            <button type="button" class="app-nav__profile" (click)="toggleProfileTray($event)" [attr.aria-expanded]="profileTrayOpen">
+                                <ng-container *ngIf="profileImage; else desktopProfileInitials">
+                                    <img [src]="profileImage" [alt]="loggedInUser.full_name || 'Student'" class="size-9 rounded-full" />
+                                </ng-container>
+                                <ng-template #desktopProfileInitials><span class="app-nav__avatar-fallback">{{ studentInitials }}</span></ng-template>
+                                <span class="app-nav__profile-meta">
+                                    <span class="app-nav__profile-name">{{ loggedInUser.full_name ?? 'Guest' }}</span>
+                                    <span class="app-nav__profile-role">Student</span>
+                                </span>
+                            </button>
+
+                            <ng-container *ngTemplateOutlet="profileTray"></ng-container>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mobile-only-controls">
+                    <div class="notification-menu" appDismissableMenu=".notification-menu__toggle">
+                        <input id="student-mobile-notifications" class="notification-menu__toggle" type="checkbox">
+                        <label for="student-mobile-notifications" class="app-nav__icon-btn" aria-label="View notifications">
+                            <span class="app-nav__dot"></span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" class="size-6">
+                                <path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </label>
+                        <div class="notification-menu__tray notification-menu__tray--mobile">
+                            <div class="notification-menu__heading"><span>Notifications</span><span class="notification-menu__status">{{ notifications.length }} new</span></div>
+                            <div class="notification-menu__list">
+                                <a *ngFor="let notification of notifications" class="notification-menu__item" (click)="openNotification(notification)"><span class="notification-menu__item-dot"></span><span><strong>{{ notification.title }}</strong><small>{{ notification.message }}</small><time>{{ notification.created_at | date: 'shortTime' }}</time></span></a>
+                            </div>
+                            <a routerLink="/student/notifications" class="notification-menu__item">View all notifications</a>
+                            <label for="student-mobile-notifications" class="notification-menu__close" aria-label="Close notifications">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="button" class="app-nav__icon-btn mobile-menu-toggle" [attr.aria-expanded]="mobileMenuOpen" (click)="mobileMenuOpen = !mobileMenuOpen">
+                        <span class="sr-only">Open main menu</span>
+                        <svg *ngIf="!mobileMenuOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" class="size-6">
+                            <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        <svg *ngIf="mobileMenuOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" class="size-6">
+                            <path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                    <div class="student-profile-menu student-profile-menu--mobile">
+                        <button type="button" class="app-nav__icon-btn" (click)="toggleProfileTray($event)" [attr.aria-expanded]="profileTrayOpen" aria-label="Open profile">
+                            <ng-container *ngIf="profileImage; else mobileProfileInitials"><img [src]="profileImage" [alt]="loggedInUser.full_name || 'Student'" class="app-nav__mobile-avatar" /></ng-container>
+                            <ng-template #mobileProfileInitials><span class="app-nav__mobile-avatar app-nav__avatar-fallback">{{ studentInitials }}</span></ng-template>
+                        </button>
+                        <ng-container *ngTemplateOutlet="profileTray"></ng-container>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-mobile-menu" *ngIf="mobileMenuOpen">
+            <a routerLink="/student/dashboard" routerLinkActive="student-mobile-menu__link--active" [routerLinkActiveOptions]="{ exact: true }" (click)="mobileMenuOpen = false">Dashboard</a>
+            <a routerLink="/student/chats" *ngIf="loggedInUser['role'] !== 'guest'" routerLinkActive="student-mobile-menu__link--active" (click)="mobileMenuOpen = false">Messages <span class="nav-badge" *ngIf="unreadConversations > 0">{{ unreadConversations > 9 ? '9+' : unreadConversations }}</span></a>
+            <a routerLink="/student/booked-services" *ngIf="loggedInUser['role'] !== 'guest'" routerLinkActive="student-mobile-menu__link--active" (click)="mobileMenuOpen = false">Services</a>
+            <button type="button" (click)="logout()">Sign out</button>
+        </div>
+    </nav>
+
+    <router-outlet></router-outlet>
+</div>
+
+<ng-template #profileTray>
+    <section class="student-profile-tray" [class.student-profile-tray--open]="profileTrayOpen" (click)="$event.stopPropagation()">
+        <div class="student-profile-tray__identity">
+            <ng-container *ngIf="profileImage; else trayProfileInitials"><img [src]="profileImage" [alt]="loggedInUser.full_name || 'Student'" /></ng-container>
+            <ng-template #trayProfileInitials><span class="student-profile-tray__avatar-fallback">{{ studentInitials }}</span></ng-template>
+            <div><strong>{{ loggedInUser.full_name || 'Guest User' }}</strong><span>{{ loggedInUser.email || 'Student account' }}</span></div>
+        </div>
+        <div class="student-profile-tray__actions" *ngIf="loggedInUser?.role !== 'guest'; else guestProfileMessage">
+            <label class="student-profile-tray__action" [class.is-disabled]="profilePhotoBusy">
+                <span>Update profile photo</span>
+                <input type="file" accept="image/*" [disabled]="profilePhotoBusy" (change)="onProfilePhotoSelected($event)" />
+            </label>
+            <button type="button" class="student-profile-tray__remove" [disabled]="profilePhotoBusy || !profileImage" (click)="removeProfilePhoto()">Remove photo</button>
+        </div>
+        <ng-template #guestProfileMessage><p class="student-profile-tray__guest">Sign in to manage your profile photo.</p></ng-template>
+        <button type="button" class="student-profile-tray__signout" (click)="logout()">Sign out</button>
+    </section>
+</ng-template>

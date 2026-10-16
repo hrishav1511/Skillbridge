@@ -1,0 +1,231 @@
+<div class="min-h-full app-shell">
+ <div class="chat-list">
+  <!-- ============ HEADER ============ -->
+  <header class="chat-list__header">
+    <div class="chat-list__heading">
+      <h1 class="chat-list__title">Messages</h1>
+      <p class="chat-list__subtitle">Your conversations with tutors</p>
+    </div>
+
+    <span class="chat-list__count">
+      {{ filteredRooms.length }}
+      {{ filteredRooms.length === 1 ? 'chat' : 'chats' }}
+    </span>
+  </header>
+
+  <!-- ============ SEARCH ============ -->
+  <div class="chat-list__search">
+    <svg class="chat-list__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.8" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" stroke-linecap="round" />
+    </svg>
+    <input
+      type="text"
+      class="chat-list__search-input"
+      placeholder="Search conversations"
+      (ngModelChange)="onSearch($event)"
+      aria-label="Search conversations" />
+    <button
+      *ngIf="searchTerm"
+      type="button"
+      class="chat-list__search-clear"
+      (click)="clearSearch()"
+      aria-label="Clear search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- ============ LOADING SKELETONS ============ -->
+  <ul class="chat-list__items" *ngIf="loading" aria-hidden="true">
+    <li class="chat-row chat-row--skeleton" *ngFor="let s of skeletons">
+      <div class="chat-row__avatar skeleton-block"></div>
+      <div class="chat-row__body">
+        <div class="skeleton-line skeleton-line--lg"></div>
+        <div class="skeleton-line skeleton-line--sm"></div>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ============ ERROR ============ -->
+  <!-- <div class="chat-list__state chat-list__state--error" *ngIf="error && !loading">
+    <div class="chat-list__state-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M12 9v4m0 4h.01M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div> -->
+    <!-- <h3 class="chat-list__state-title">Couldn&apos;t load messages</h3>
+    <p class="chat-list__state-text">{{ error }}</p>
+    <button type="button" class="chat-list__state-btn" (click)="retry()">Try again</button>
+  </div> -->
+
+  <!-- ============ EMPTY ============ -->
+  <!-- <div class="chat-list__state" *ngIf="!loading && !error && filteredRooms.length === 0">
+    <div class="chat-list__state-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div>
+    <h3 class="chat-list__state-title">
+      {{ searchTerm ? 'No matches found' : 'No conversations yet' }}
+    </h3>
+    <p class="chat-list__state-text">
+      {{ searchTerm
+        ? 'Try a different name or keyword.'
+        : 'Start chatting with a tutor and your conversations will appear here.' }}
+    </p>
+  </div> -->
+
+  <!-- ============ CHAT ROWS ============ -->
+<ul class="chat-list__items">
+
+  <li
+  *ngFor="let item of chatlist"
+  class="chat-row"
+  [class.chat-row--unread]="item.last_message"
+  (click)="openChatfromList(item)"
+>
+
+  <!-- Avatar -->
+  <div class="chat-row__avatar" style="background:#6366f1;">
+    <span>
+      {{ item.members[0].full_name.split(' ')[0][0] }}{{ item.members[0].full_name.split(' ').length > 1 ? item.members[0].full_name.split(' ')[1][0] : '' }}
+    </span>
+
+    <span class="chat-row__presence"></span>
+  </div>
+
+  <!-- Body -->
+  <div class="chat-row__body">
+
+    <div class="chat-row__top">
+      <span class="chat-row__name">
+        {{ item.members[0].full_name }}
+      </span>
+
+      <span class="chat-row__time" *ngIf="item.last_message">
+        {{ item.last_message.created_at | date:'shortTime' }}
+      </span>
+    </div>
+
+    <div class="chat-row__bottom">
+      <p class="chat-row__preview">
+        {{ item.last_message?.content || 'No messages yet' }}
+      </p>
+
+      <span
+        class="chat-row__badge"
+        *ngIf="item.last_message">
+      </span>
+    </div>
+
+  </div>
+
+  <!-- Chevron -->
+  <svg
+    class="chat-row__chevron"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2">
+
+    <path
+      d="m9 6 6 6-6 6"
+      stroke-linecap="round"
+      stroke-linejoin="round">
+    </path>
+
+  </svg>
+
+</li>
+
+  <!-- <li class="chat-row">
+
+    <div class="chat-row__avatar" style="background:#10b981;">
+      <span>EB</span>
+    </div>
+
+    <div class="chat-row__body">
+      <div class="chat-row__top">
+        <span class="chat-row__name">Emily Butler</span>
+        <span class="chat-row__time">1h</span>
+      </div>
+
+      <div class="chat-row__bottom">
+        <p class="chat-row__preview">
+          I've uploaded the assignment notes for review.
+        </p>
+
+        <span class="chat-row__badge"></span>
+      </div>
+    </div>
+
+    <svg class="chat-row__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+  </li>
+
+  <li class="chat-row">
+
+    <div class="chat-row__avatar" style="background:#f59e0b;">
+      <span>MS</span>
+    </div>
+
+    <div class="chat-row__body">
+      <div class="chat-row__top">
+        <span class="chat-row__name">Michael Smith</span>
+        <span class="chat-row__time">Yesterday</span>
+      </div>
+
+      <div class="chat-row__bottom">
+        <p class="chat-row__preview">
+          Great progress this week! Keep practicing the exercises.
+        </p>
+
+        <span class="chat-row__badge"></span>
+      </div>
+    </div>
+
+    <svg class="chat-row__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+  </li>
+
+  <li class="chat-row">
+
+    <div class="chat-row__avatar" style="background:#ec4899;">
+      <span>AL</span>
+    </div>
+
+    <div class="chat-row__body">
+      <div class="chat-row__top">
+        <span class="chat-row__name">Alice Lee</span>
+        <span class="chat-row__time">Mon</span>
+      </div>
+
+      <div class="chat-row__bottom">
+        <p class="chat-row__preview">
+          Thank you for helping me prepare for the exam!
+        </p>
+
+        <span class="chat-row__badge"></span>
+      </div>
+    </div>
+
+    <svg class="chat-row__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+  </li> -->
+
+</ul>
+</div>
+
+
+  </div>

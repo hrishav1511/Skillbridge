@@ -1,0 +1,62 @@
+<div class="approval-modal">
+    <div class="modal-header">
+        <div>
+            <div class="eyebrow">Tutor review <span>{{ data.item.revision_type || 'CREATE' }}</span></div>
+            <h2>{{ data.item.full_name || data.item.user?.full_name || 'Tutor profile' }}</h2>
+            <p class="subtitle">Review the tutor's submitted profile before deciding to approve or reject.</p>
+        </div>
+        <span class="status-badge">{{ data.item.approval_status || 'PENDING' }}</span>
+    </div>
+
+    <div class="profile-summary" *ngIf="data.item.profile_picture_url || data.item.cover_picture_url">
+        <img *ngIf="data.item.profile_picture_url" class="profile-picture" [src]="data.item.profile_picture_url" [alt]="data.item.full_name || 'Tutor profile picture'">
+        <span *ngIf="!data.item.profile_picture_url" class="profile-picture profile-picture--empty">No photo</span>
+        <a *ngIf="data.item.cover_picture_url" [href]="data.item.cover_picture_url" target="_blank" rel="noopener noreferrer">Open cover image</a>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-card"><label>Tutor</label><span>{{ data.item.full_name || data.item.user?.full_name || 'Not provided' }}</span></div>
+        <div class="info-card"><label>Email</label><span>{{ data.item.user?.email || 'Not provided' }}</span></div>
+        <div class="info-card"><label>Phone</label><span>{{ data.item.phone || data.item.user?.phone || 'Not provided' }}</span></div>
+        <div class="info-card"><label>Academic program</label><span>{{ data.item.academic_program || 'Not provided' }}</span></div>
+        <!-- <div class="info-card"><label>Average rating</label><span>{{ data.item.average_rating != null ? data.item.average_rating : 'No ratings yet' }}</span></div> -->
+        <!-- <div class="info-card"><label>Profile visibility</label><span>{{ data.item.is_visible ? 'Visible' : 'Hidden' }}</span></div> -->
+        <!-- <div class="info-card"><label>Accepting requests</label><span>{{ data.item.accepting_requests ? 'Yes' : 'No' }}</span></div> -->
+        <div class="info-card"><label>Approval status</label><span>{{ data.item.approval_status || 'Not provided' }}</span></div>
+        <div class="info-card"><label>Moderation status</label><span>{{ data.item.moderation_status || 'Not reviewed' }}</span></div>
+        <!-- <div class="info-card"><label>Account status</label><span>{{ data.item.account_status || data.item.user?.status || 'Not provided' }}</span></div> -->
+        <!-- <div class="info-card"><label>Email verified</label><span>{{ data.item.user?.is_verified == null ? 'Not provided' : (data.item.user.is_verified ? 'Yes' : 'No') }}</span></div> -->
+        <!-- <div class="info-card"><label>Registered</label><span>{{ data.item.user?.has_registered == null ? 'Not provided' : (data.item.user.has_registered ? 'Yes' : 'No') }}</span></div> -->
+        <!-- <div class="info-card"><label>Tutor ID</label><span>{{ data.item.tutor_id || 'Not assigned' }}</span></div> -->
+    </div>
+
+    <div class="description-card">
+        <label>Bio</label>
+        <p>{{ data.item.bio || 'No bio provided.' }}</p>
+    </div>
+
+    <div class="review-grid">
+        <div class="link-card"><label>Teaching style</label><span>{{ data.item.teaching_style || 'Not provided' }}</span></div>
+        <div class="link-card"><label>Tags</label><span>{{ data.item.tags?.length ? data.item.tags.join(', ') : 'No tags' }}</span></div>
+    </div>
+
+    <section *ngIf="data.item.moderation_flag || data.item.moderation_categories || data.item.moderation_scores" class="moderation-panel">
+        <div class="moderation-panel__heading"><span class="moderation-icon">AI</span><div><strong>Content moderation</strong><p>{{ data.item.moderation_flag ? 'This profile was flagged for review by automated content screening.' : 'This profile was cleared by automated content screening.' }}</p></div></div>
+        <div class="moderation-meta"><span>Reason: <strong>{{ data.item.moderation_reason || 'No policy signal' }}</strong></span><span>Provider: {{ data.item.moderation_provider || 'Automated review' }}</span><span>Status: {{ data.item.moderation_status || 'Not reviewed' }}</span><span>Reviewed: {{ data.item.moderated_at | date:'medium' }}</span></div>
+        <div class="moderation-categories"><span *ngFor="let category of data.item.moderation_categories | keyvalue" [class.moderation-category--active]="category.value">{{ formatModerationLabel($any(category?.key)) }}<b>{{ category.value ? 'Flagged' : 'Clear' }}</b><small>Score: {{ $any(data.item.moderation_scores)[$any(category?.key)] | percent:'1.0-1' }}</small></span></div>
+    </section>
+
+    <ng-container *ngIf="data.action=='REJECT'">
+        <div class="rejection-card" [formGroup]="form">
+            <label for="rejectionReason">Rejection reason</label>
+            <textarea id="rejectionReason" rows="5" placeholder="Enter the reason for rejecting this tutor..." formControlName="reason"></textarea>
+            <span class="error-star" *ngIf="form.get('reason')?.invalid && form.get('reason')?.touched">Reason is required.</span>
+        </div>
+    </ng-container>
+
+    <div class="actions">
+        <button class="btn secondary" (click)="close()">Cancel</button>
+        <button *ngIf="data.action=='APPROVE'" class="btn primary" (click)="approve()">Approve Tutor</button>
+        <button *ngIf="data.action=='REJECT'" class="btn error" (click)="reject()">Reject Tutor</button>
+    </div>
+</div>

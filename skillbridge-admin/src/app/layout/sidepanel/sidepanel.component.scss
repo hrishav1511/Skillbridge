@@ -1,0 +1,108 @@
+
+ $bg:           #f5f3fb;
+$surface:      #ffffff;
+$sidebar-bg:   #efeaf8;
+$text:         #1f1b2e;
+$muted:        #8b86a0;
+$border:       #ece9f3;
+
+$purple-900:   #2b1d57;
+$purple-700:   #4b3a8f;
+$purple-500:   #7c6ae0;
+$purple-300:   #b9aef0;
+$purple-100:   #e6e0fa;
+
+$lilac:        #d9d2f5;
+$peach:        #ffe1d2;
+$pink:         #ffd9e3;
+$mint:         #d8f1e2;
+
+$up:           #2fae66;
+$up-bg:        #d8f1e2;
+$down:         #ef5b6b;
+$down-bg:      #ffd9e0;
+
+$radius:       18px;
+$radius-sm:    12px;
+$shadow:       0 4px 20px rgba(35, 25, 80, .04);
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 50;
+  width: 240px;
+  height: 100vh;
+  overflow-y: auto;
+  background: $sidebar-bg;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid $border;
+}
+
+.sidebar__top {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &__logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: $purple-900;
+    color: white;
+
+    display: grid;
+    place-items: center;
+
+    svg {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  &__name {
+    font-size: 18px;
+    font-weight: 700;
+    color: $purple-900;
+  }
+}
+.sidebar__bottom { display: flex; flex-direction: column; gap: 4px; }
+.nav {
+  display: flex; flex-direction: column; gap: 4px;
+
+  &__item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: lighten($text, 15%);
+    font-weight: 500;
+    transition: background .2s;
+
+    &:hover { background: rgba(255,255,255,.6); }
+  }
+  &__icon { width: 18px; text-align: center; color: $purple-700; }
+  &__chev { margin-left: auto; color: $muted; font-size: 12px; }
+}
+
+
+a { text-decoration: none; color: inherit; }
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+.dash{
+  color: white;
+    background: #2b1d57;
+    transition: 0.2s ease-in-out;
+    &:hover{
+      color:#2b1d57
+    }
+}
+

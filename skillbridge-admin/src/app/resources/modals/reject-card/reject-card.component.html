@@ -1,0 +1,69 @@
+<div class="approval-modal">
+    <div class="modal-header">
+        <div>
+            <div class="eyebrow">Service review <span>{{ data.item.revision_type || 'CREATE' }}</span></div>
+            <h2>{{ data.item.service_name }}</h2>
+            <p class="subtitle">Review the tutor's submitted service before rejecting.</p>
+        </div>
+        <span class="status-badge">{{ data.item.approval_status || 'PENDING' }}</span>
+    </div>
+    <div class="info-grid">
+        <div class="info-card"><label>Tutor</label><span>{{ data.item.tutor?.full_name || 'Not provided' }}</span></div>
+        <div class="info-card"><label>Email</label><span>{{ data.item.tutor?.email || 'Not provided' }}</span></div>
+        <div class="info-card"><label>Phone</label><span>{{ data.item.tutor?.phone || 'Not provided' }}</span></div>
+        <div class="info-card"><label>Price</label><span>{{ data.item.price | currency:'EUR' }}</span></div>
+        <div class="info-card"><label>Level</label><span>{{ data.item.level || 'Not provided' }}</span></div>
+        <div class="info-card"><label>Date</label><span>{{ data.item.date | date:'mediumDate' }}</span></div>
+        <div class="info-card"><label>Service time</label><span>{{ data.item.time }} - {{ data.item.end_time || 'Not provided' }}</span></div>
+        <div class="info-card"><label>Service status</label><span>{{ data.item.schedule_status || 'Not scheduled' }}</span></div>
+        <div class="info-card"><label>Revision</label><span>{{ data.item.revision_type || 'Not provided' }}</span></div>
+        <div class="info-card"><label>Service ID</label><span>{{ data.item.service_id || 'New service' }}</span></div>
+    </div>
+    <div class="description-card">
+        <label>Description</label><p>{{ data.item.description || 'No description provided.' }}</p>
+    </div>
+    <section class="media-panel">
+        <div class="media-panel__head">
+            <label>Uploaded media</label>
+            <span class="media-count">{{ mediaItems.length }} file{{ mediaItems.length === 1 ? '' : 's' }}</span>
+        </div>
+        <div class="media-grid" *ngIf="mediaItems.length; else noMedia">
+            <figure class="media-tile" *ngFor="let media of mediaItems">
+                <img *ngIf="media.type === 'image'" [src]="media.url" alt="Service image"
+                    loading="lazy" (error)="onMediaError($event)" />
+                <video *ngIf="media.type === 'video'" [src]="media.url" controls preload="metadata"
+                    (error)="onMediaError($event)"></video>
+                <figcaption>
+                    <span class="media-kind">{{ media.type === 'image' ? 'Image' : 'Video' }}</span>
+                    <a [href]="media.url" target="_blank" rel="noopener noreferrer">Open</a>
+                </figcaption>
+            </figure>
+        </div>
+        <ng-template #noMedia>
+            <p class="media-empty">No images or videos were uploaded with this service.</p>
+        </ng-template>
+    </section>
+    <div class="review-grid">
+        <div class="link-card">
+            <label>Joining link</label>
+            <a *ngIf="data.item.joining_link; else noLink" [href]="data.item.joining_link" target="_blank" rel="noopener noreferrer">Open service link</a>
+            <ng-template #noLink><span>Not provided</span></ng-template>
+        </div>
+        <div class="link-card"><label>Tags</label><span>{{ data.item.tags?.length ? data.item.tags.join(', ') : 'No tags' }}</span></div>
+    </div>
+    <section *ngIf="data.item.moderation_flag" class="moderation-panel">
+        <div class="moderation-panel__heading"><span class="moderation-icon">AI</span><div><strong>AI content moderated</strong><p>This service was flagged for review by automated content screening.</p></div></div>
+        <div class="moderation-meta"><span>Reason: <strong>{{ data.item.moderation_reason || 'Content policy signal' }}</strong></span><span>Provider: {{ data.item.moderation_provider || 'Automated review' }}</span><span>Status: {{ data.item.moderation_status || 'Flagged' }}</span><span>Reviewed: {{ data.item.moderated_at | date:'medium' }}</span></div>
+        <div class="moderation-categories"><span *ngFor="let category of data.item.moderation_categories | keyvalue" [class.moderation-category--active]="category.value">{{ $any(category.key) | titlecase }}<b>{{ category.value ? 'Flagged' : 'Clear' }}</b></span></div>
+        <div class="moderation-scores"><span *ngFor="let score of data.item.moderation_scores | keyvalue">{{ $any(score.key) | titlecase }}<b>{{ $any(score.value) | percent:'1.0-1' }}</b></span></div>
+    </section>
+    <div class="rejection-card" [formGroup]="form">
+        <label for="rejectionReason">Rejection reason</label>
+        <textarea id="rejectionReason" rows="5" placeholder="Enter the reason for rejecting this service..." formControlName="reason"></textarea>
+        <span class="error-star" *ngIf="form.get('reason')?.invalid && form.get('reason')?.touched">Reason is required.</span>
+    </div>
+    <div class="actions">
+        <button class="btn secondary" (click)="close()">Cancel</button>
+        <button class="btn error" (click)="reject()">Reject Service</button>
+    </div>
+</div>

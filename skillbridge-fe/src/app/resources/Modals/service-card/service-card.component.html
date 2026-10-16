@@ -1,0 +1,282 @@
+<div class="drawer-container">
+
+    <div class="drawer-header">
+
+        <div>
+            <h2 class="md-header">
+                {{ isEditMode ? 'Edit Service' : 'Create Service' }}
+            </h2>
+
+            <p class="md-sub">
+                Configure your tutoring service
+            </p>
+        </div>
+
+        <button
+            type="button"
+            class="close-btn"
+            (click)="close()">
+
+            <i class="fa-solid fa-xmark"></i>
+
+        </button>
+
+    </div>
+
+    <div class="drawer-body">
+
+        <form
+            [formGroup]="serviceForm"
+            (ngSubmit)="save()">
+
+            <div class="form-grid">
+
+                <div class="form-group full-width">
+                    <label>Service Name</label>
+
+                    <input
+                        type="text"
+                        formControlName="service_name"
+                        placeholder="Angular Fundamentals">
+
+                    <p class="field-error" *ngIf="serviceForm.get('service_name')?.errors?.['server']">
+                        {{ serviceForm.get('service_name')?.errors?.['server'] }}
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label>Price (€)</label>
+
+                    <input
+                        type="number"
+                        formControlName="price">
+
+                    <p class="field-error" *ngIf="serviceForm.get('price')?.errors?.['server']">
+                        {{ serviceForm.get('price')?.errors?.['server'] }}
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label>Level</label>
+
+                    <select formControlName="level">
+
+                        <option value="BEGINNER">
+                            Beginner
+                        </option>
+
+                        <option value="INTERMEDIATE">
+                            Intermediate
+                        </option>
+
+                        <option value="ADVANCED">
+                            Advanced
+                        </option>
+
+                    </select>
+
+                    <p class="field-error" *ngIf="serviceForm.get('level')?.errors?.['server']">
+                        {{ serviceForm.get('level')?.errors?.['server'] }}
+                    </p>
+                </div>
+
+                <div class="form-group full-width">
+                    <div class="datetime-grid">
+                        <div class="form-group">
+                            <label>Date</label>
+
+                            <input
+                                type="date"
+                                formControlName="date"
+                                [attr.min]="todayDate"
+                                [attr.max]="maxDate">
+
+                            <p class="field-error" *ngIf="serviceForm.get('date')?.touched && serviceForm.get('date')?.invalid">
+                                <span *ngIf="serviceForm.get('date')?.errors?.['required']">Date is required.</span>
+                                <span *ngIf="serviceForm.get('date')?.errors?.['pastDate']">Date cannot be in the past.</span>
+                                <span *ngIf="serviceForm.get('date')?.errors?.['farFutureDate']">Date cannot be later than {{ serviceForm.get('date')?.errors?.['farFutureDate'].maxYear }}.</span>
+                                <span *ngIf="serviceForm.get('date')?.errors?.['server']">{{ serviceForm.get('date')?.errors?.['server'] }}</span>
+                            </p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Start Time</label>
+
+                            <input
+                                type="time"
+                                formControlName="time">
+
+                            <p class="field-error" *ngIf="serviceForm.get('time')?.touched && serviceForm.get('time')?.errors?.['required']">
+                                Start time is required.
+                            </p>
+
+                            <p class="field-error" *ngIf="serviceForm.get('time')?.errors?.['server']">
+                                {{ serviceForm.get('time')?.errors?.['server'] }}
+                            </p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>End Time</label>
+
+                            <input
+                                type="time"
+                                formControlName="end_time">
+
+                            <p class="field-error" *ngIf="serviceForm.get('end_time')?.touched && serviceForm.get('end_time')?.errors?.['required']">
+                                End time is required.
+                            </p>
+
+                            <p class="field-error" *ngIf="serviceForm.get('end_time')?.errors?.['server']">
+                                {{ serviceForm.get('end_time')?.errors?.['server'] }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="field-error" *ngIf="serviceForm.errors?.['timeRange'] && (serviceForm.get('time')?.touched || serviceForm.get('end_time')?.touched)">
+                        Start time must be before end time.
+                    </p>
+
+                    <p class="field-error" *ngIf="serviceForm.errors?.['pastStartTime'] && serviceForm.get('time')?.touched">
+                        Start time cannot be in the past for today's date.
+                    </p>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Joining Link</label>
+
+                    <input
+                        type="text"
+                        formControlName="joining_link"
+                        placeholder="https://meet.google.com/...">
+
+                    <p class="field-error" *ngIf="serviceForm.get('joining_link')?.errors?.['server']">
+                        {{ serviceForm.get('joining_link')?.errors?.['server'] }}
+                    </p>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Description</label>
+
+                    <textarea
+                        rows="6"
+                        formControlName="description"
+                        placeholder="Describe what students will learn">
+                    </textarea>
+
+                    <p class="field-error" *ngIf="serviceForm.get('description')?.errors?.['server']">
+                        {{ serviceForm.get('description')?.errors?.['server'] }}
+                    </p>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Subject tags</label>
+                    <p class="md-sub">
+                        Helps students find this service in search. Press Enter to add.
+                    </p>
+
+                    <div class="tag-input-box">
+                        <span class="tag-pill" *ngFor="let tag of tags; let i = index">
+                            {{ tag }}
+                            <button
+                                type="button"
+                                class="tag-pill__remove"
+                                (click)="removeTag(i)"
+                                [attr.aria-label]="'Remove ' + tag">✕</button>
+                        </span>
+
+                        <input
+                            type="text"
+                            class="tag-input"
+                            [(ngModel)]="tagInput"
+                            [ngModelOptions]="{standalone: true}"
+                            (keydown.enter)="$event.preventDefault(); addTag()"
+                            placeholder="e.g. Python, Algebra" />
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Images</label>
+                    <p class="md-sub">Up to 8 images, 5MB each.</p>
+
+                    <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        (change)="onImagesSelected($event)">
+
+                    <div class="preview-list" *ngIf="selectedImageFiles.length">
+                        <div class="preview-item" *ngFor="let image of selectedImageFiles; let i = index">
+                            <img [src]="getPreviewUrl(image)" [alt]="image.name">
+                            <button type="button" class="remove-btn" (click)="removeImage(i)">×</button>
+                        </div>
+                    </div>
+
+                    <div class="preview-list" *ngIf="existingImageUrls.length">
+                        <p class="md-sub">Already uploaded images</p>
+                        <div class="preview-item" *ngFor="let url of existingImageUrls; let i = index">
+                            <img [src]="url" [alt]="'existing-image-' + i">
+                            <button type="button" class="remove-btn" (click)="removeExistingImage(i)">×</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Videos</label>
+                    <p class="md-sub">Up to 3 videos, 100MB each.</p>
+
+                    <input
+                        type="file"
+                        accept="video/*"
+                        multiple
+                        (change)="onVideosSelected($event)">
+
+                        <p class="media-error" *ngIf="mediaError">{{ mediaError }}</p>
+
+                    <div class="preview-list" *ngIf="selectedVideoFiles.length">
+                        <div class="preview-item video-item" *ngFor="let video of selectedVideoFiles; let i = index">
+                            <video [src]="getPreviewUrl(video)" controls></video>
+                            <button type="button" class="remove-btn" (click)="removeVideo(i)">×</button>
+                        </div>
+                    </div>
+
+                    <div class="preview-list" *ngIf="existingVideoUrls.length">
+                        <p class="md-sub">Already uploaded videos</p>
+                        <div class="preview-item video-item" *ngFor="let url of existingVideoUrls; let i = index">
+                            <video [src]="url" controls></video>
+                            <button type="button" class="remove-btn" (click)="removeExistingVideo(i)">×</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </form>
+
+        <p class="field-error" *ngIf="serverError">{{ serverError }}</p>
+
+    </div>
+
+    <div class="action-buttons">
+
+        <button
+            type="button"
+            class="btn-secondary"
+            (click)="close()">
+
+            Cancel
+
+        </button>
+
+        <button
+            type="button"
+            class="btn-primary"
+            [disabled]="isLoading"
+            (click)="save()">
+
+            {{ isEditMode ? 'Update Service' : 'Create Service' }}
+
+        </button>
+
+    </div>
+
+</div>

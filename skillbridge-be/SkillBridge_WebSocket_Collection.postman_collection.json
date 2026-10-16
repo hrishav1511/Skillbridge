@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "SkillBridge WebSocket Collection",
+    "description": "WebSocket requests for SkillBridge chat and realtime notifications. Notifications use the same per-user socket as chat. Connect to /api/v1/chat/ws/{user_id}; pending unread notifications are sent after connection. Notification types include SERVICE_BOOKED for tutors, SERVICE_APPROVED and SERVICE_REVISION_APPROVED for tutors, and SERVICE_UPDATED for students booked on an upcoming service.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "skillbridge-websocket-collection-v1"
+  },
+  "variable": [
+    { "key": "base_url", "value": "localhost:8002", "type": "string" },
+    { "key": "ws_protocol", "value": "ws", "type": "string" },
+    { "key": "access_token", "value": "", "type": "string" },
+    { "key": "user_id", "value": "", "type": "string" },
+    { "key": "chat_room_id", "value": "", "type": "string" },
+    { "key": "message_id", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Tutor Realtime Notifications",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{ws_protocol}}://{{base_url}}/api/v1/chat/ws/{{user_id}}?token={{access_token}}",
+          "protocol": "{{ws_protocol}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "chat", "ws", "{{user_id}}"],
+          "query": [
+            { "key": "token", "value": "{{access_token}}" }
+          ]
+        },
+        "description": "Open this WebSocket while logged in as the tutor. On connection, the backend replays up to 100 unread persisted notifications. Booking notifications use notification_type=SERVICE_BOOKED; approval notifications use SERVICE_APPROVED or SERVICE_REVISION_APPROVED. Students booked on an upcoming service receive SERVICE_UPDATED after an approved service update.\n\nExpected notification frame:\n{\n  \"event\": \"notification\",\n  \"payload\": {\n    \"id\": \"notification-uuid\",\n    \"user_id\": \"recipient-user-uuid\",\n    \"notification_type\": \"SERVICE_BOOKED\",\n    \"title\": \"New service booking\",\n    \"message\": \"A student booked your service 'Python tutoring'.\",\n    \"data\": {\n      \"booking_id\": \"booking-uuid\",\n      \"service_id\": \"service-uuid\",\n      \"student_id\": \"student-profile-uuid\"\n    },\n    \"is_read\": false,\n    \"created_at\": \"2026-09-14T12:00:00+00:00\"\n  }\n}\n\nThis is the same socket used for chat; do not create a second notification socket for the same user."
+      }
+    },
+    {
+      "name": "Chat WebSocket",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{ws_protocol}}://{{base_url}}/api/v1/chat/ws/{{user_id}}?token={{access_token}}",
+          "protocol": "{{ws_protocol}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "chat", "ws", "{{user_id}}"],
+          "query": [
+            { "key": "token", "value": "{{access_token}}" }
+          ]
+        },
+        "description": "Use this connection for chat and notifications. Incoming frames can have event values: new_message, history, read_receipt, typing, notification, or error."
+      }
+    },
+    {
+      "name": "Message: Send Chat Message",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{ws_protocol}}://{{base_url}}/api/v1/chat/ws/{{user_id}}?token={{access_token}}",
+          "protocol": "{{ws_protocol}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "chat", "ws", "{{user_id}}"],
+          "query": [
+            { "key": "token", "value": "{{access_token}}" }
+          ]
+        },
+        "description": "After opening the connection, send this text frame from Postman's WebSocket message composer:\n\n{\n  \"type\": \"send_message\",\n  \"payload\": {\n    \"chat_room_id\": \"{{chat_room_id}}\",\n    \"content\": \"Hello from Postman\"\n  }\n}\n\nExpected response event: new_message."
+      }
+    },
+    {
+      "name": "Message: Fetch Chat History",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{ws_protocol}}://{{base_url}}/api/v1/chat/ws/{{user_id}}?token={{access_token}}",
+          "protocol": "{{ws_protocol}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "chat", "ws", "{{user_id}}"],
+          "query": [
+            { "key": "token", "value": "{{access_token}}" }
+          ]
+        },
+        "description": "After opening the connection, send this text frame:\n\n{\n  \"type\": \"fetch_history\",\n  \"payload\": {\n    \"chat_room_id\": \"{{chat_room_id}}\",\n    \"before_message_id\": null,\n    \"limit\": 30\n  }\n}\n\nExpected response event: history."
+      }
+    },
+    {
+      "name": "Message: Mark Chat Read",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{ws_protocol}}://{{base_url}}/api/v1/chat/ws/{{user_id}}?token={{access_token}}",
+          "protocol": "{{ws_protocol}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "chat", "ws", "{{user_id}}"],
+          "query": [
+            { "key": "token", "value": "{{access_token}}" }
+          ]
+        },
+        "description": "After opening the connection, send this text frame:\n\n{\n  \"type\": \"mark_read\",\n  \"payload\": {\n    \"chat_room_id\": \"{{chat_room_id}}\",\n    \"message_id\": \"{{message_id}}\"\n  }\n}\n\nExpected response event: read_receipt to other room members."
+      }
+    },
+    {
+      "name": "Message: Typing Indicator",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{ws_protocol}}://{{base_url}}/api/v1/chat/ws/{{user_id}}?token={{access_token}}",
+          "protocol": "{{ws_protocol}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "chat", "ws", "{{user_id}}"],
+          "query": [
+            { "key": "token", "value": "{{access_token}}" }
+          ]
+        },
+        "description": "After opening the connection, send this text frame:\n\n{\n  \"type\": \"typing\",\n  \"payload\": {\n    \"chat_room_id\": \"{{chat_room_id}}\",\n    \"is_typing\": true\n  }\n}\n\nExpected response event: typing to other room members."
+      }
+    }
+  ]
+}

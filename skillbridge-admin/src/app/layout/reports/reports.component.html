@@ -1,0 +1,199 @@
+<section class="reports">
+  <header>
+    <h1>Reports</h1>
+    <p>Review what students have reported and act on it.</p>
+  </header>
+
+  <div class="reports__tabs" role="tablist" aria-label="Report types">
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="activeTab === 'tutor'"
+      [class.is-active]="activeTab === 'tutor'"
+      (click)="selectTab('tutor')">
+      Reported Tutors <span class="reports__badge">{{ tutorReports.length }}</span>
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="activeTab === 'service'"
+      [class.is-active]="activeTab === 'service'"
+      (click)="selectTab('service')">
+      Reported Services <span class="reports__badge">{{ serviceReports.length }}</span>
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="activeTab === 'review'"
+      [class.is-active]="activeTab === 'review'"
+      (click)="selectTab('review')">
+      Reported Reviews <span class="reports__badge">{{ reviewReports.length }}</span>
+    </button>
+  </div>
+
+  <p class="reports__state reports__state--error" *ngIf="error">{{ error }}</p>
+  <p class="reports__state reports__state--ok" *ngIf="notice">{{ notice }}</p>
+  <p class="reports__state" *ngIf="loading">Loading reports...</p>
+
+  <!-- Reported tutors -->
+  <div class="reports__panel" *ngIf="!loading && activeTab === 'tutor'" role="tabpanel">
+    <table class="reports__table">
+      <thead>
+        <tr>
+          <th>Tutor</th>
+          <th>Reported by</th>
+          <th>Date</th>
+          <th>Reason</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let report of tutorReports">
+          <td class="reports__entity">
+            <img
+              *ngIf="report.tutor_profile_picture_url"
+              class="reports__avatar"
+              [src]="report.tutor_profile_picture_url"
+              [alt]="report.tutor_name || 'Tutor'" />
+            <span>{{ report.tutor_name || 'Unknown tutor' }}</span>
+          </td>
+          <td>{{ report.reporter_name || 'Unknown' }}</td>
+          <td>{{ report.reported_at ? (report.reported_at | date:'short') : '—' }}</td>
+          <td class="reports__reason">{{ report.reason }}</td>
+          <td class="reports__actions">
+            <button type="button" class="reports__btn" (click)="openReport('tutor', report)">
+              Open
+            </button>
+            <button
+              type="button"
+              class="reports__btn"
+              (click)="askToDelete('tutor', report.id, 'discard', report.tutor_name || 'this tutor')">
+              Discard
+            </button>
+            <button
+              type="button"
+              class="reports__btn reports__btn--danger"
+              (click)="askToDelete('tutor', report.id, 'resolved', report.tutor_name || 'this tutor')">
+              Resolved
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!tutorReports.length">
+          <td colspan="5" class="reports__empty">No reported tutors</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Reported services -->
+  <div class="reports__panel" *ngIf="!loading && activeTab === 'service'" role="tabpanel">
+    <table class="reports__table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Reported by</th>
+          <th>Date</th>
+          <th>Reason</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let report of serviceReports">
+          <td>{{ report.service_name || 'Unknown service' }}</td>
+          <td>{{ report.reporter_name || 'Unknown' }}</td>
+          <td>{{ report.reported_at ? (report.reported_at | date:'short') : '—' }}</td>
+          <td class="reports__reason">{{ report.reason }}</td>
+          <td class="reports__actions">
+            <button type="button" class="reports__btn" (click)="openReport('service', report)">
+              Open
+            </button>
+            <button
+              type="button"
+              class="reports__btn"
+              (click)="askToDelete('service', report.id, 'discard', report.service_name || 'this service')">
+              Discard
+            </button>
+            <button
+              type="button"
+              class="reports__btn reports__btn--danger"
+              (click)="askToDelete('service', report.id, 'resolved', report.service_name || 'this service')">
+              Resolved
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!serviceReports.length">
+          <td colspan="5" class="reports__empty">No reported services</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Reported reviews -->
+  <div class="reports__panel" *ngIf="!loading && activeTab === 'review'" role="tabpanel">
+    <table class="reports__table">
+      <thead>
+        <tr>
+          <th>Review</th>
+          <th>Reported by</th>
+          <th>Date</th>
+          <th>Reason</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let report of reviewReports">
+          <td>
+            <div class="reports__review">
+              <span class="reports__rating">{{ report.review_rating }}★</span>
+              <span>{{ report.review_comment || 'No comment' }}</span>
+            </div>
+            <div class="reports__review-type">{{ report.review_type }} review</div>
+          </td>
+          <td>{{ report.reporter_name || 'Unknown' }}</td>
+          <td>{{ report.reported_at ? (report.reported_at | date:'short') : '—' }}</td>
+          <td class="reports__reason">{{ report.reason }}</td>
+          <td class="reports__actions">
+            <button type="button" class="reports__btn" (click)="openReport('review', report)">
+              Open
+            </button>
+            <button
+              type="button"
+              class="reports__btn"
+              (click)="askToDelete('review', report.id, 'discard', 'this review')">
+              Discard
+            </button>
+            <button
+              type="button"
+              class="reports__btn reports__btn--danger"
+              (click)="askToDelete('review', report.id, 'resolved', 'this review')">
+              Resolved
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!reviewReports.length">
+          <td colspan="5" class="reports__empty">No reported reviews</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Confirmation -->
+  <div class="reports__scrim" *ngIf="pendingAction" (click)="cancelAction()"></div>
+  <div class="reports__confirm" *ngIf="pendingAction" role="dialog" aria-modal="true"
+       aria-labelledby="confirm-title">
+    <h2 id="confirm-title">{{ confirmTitle }}</h2>
+    <p>{{ confirmMessage }}</p>
+    <div class="reports__confirm-actions">
+      <button type="button" class="reports__btn" (click)="cancelAction()" [disabled]="submitting">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="reports__btn reports__btn--danger"
+        (click)="confirmAction()"
+        [disabled]="submitting">
+        {{ submitting ? 'Working...' : (pendingAction.reason === 'discard' ? 'Discard' : 'Resolved') }}
+      </button>
+    </div>
+  </div>
+</section>

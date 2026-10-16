@@ -1,0 +1,3101 @@
+{
+  "info": {
+    "name": "SkillBridge API Collection",
+    "description": "Collection for testing all SkillBridge API endpoints. The login request stores the returned access_token in the Postman environment variable named access_token and protected routes use Authorization: Bearer {{access_token}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "skillbridge-api-collection-v1"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8002",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "role_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tutor_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "service_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "attachment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "attachment_file",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "chat_room_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "target_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "user@example.com",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "Password123!",
+      "type": "string"
+    },
+    {
+      "key": "full_name",
+      "value": "Test User",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"{{full_name}}\",\n  \"email\": \"{{email}}\",\n  \"phone\": \"+1234567890\",\n  \"password\": \"{{password}}\",\n  \"confirm_password\": \"{{password}}\",\n  \"role_id\": \"{{role_id}}\",\n  \"status\": \"ACTIVE\",\n  \"academic_program\": \"Computer Science\",\n  \"bio\": \"Test bio\",\n  \"teaching_style\": \"Project-based\",\n  \"hourly_price\": 25,\n  \"is_visible\": true,\n  \"accepting_requests\": true,\n  \"tags\": [\"python\", \"backend\"],\n  \"field_of_study\": \"Computer Science\",\n  \"enrolled_university\": \"Fulda University\",\n  \"graduation_year\": 2026\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/user/register/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "register",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function () {\n  pm.expect([200, 201]).to.include(pm.response.code);\n});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"role_id\": \"{{role_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/user/login/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "login",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login returns 200\", function () {\n  pm.response.to.have.status(200);\n});",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData && jsonData.data && jsonData.data.access_token) {",
+                  "  pm.environment.set(\"access_token\", jsonData.data.access_token);",
+                  "  pm.environment.set(\"refresh_token\", jsonData.data.refresh_token);",
+                  "  pm.environment.set(\"user_id\", jsonData.data.user_id);",
+                  "  if (jsonData.data.tutor_id) pm.environment.set(\"tutor_id\", jsonData.data.tutor_id);",
+                  "  if (jsonData.data.student_id) pm.environment.set(\"student_id\", jsonData.data.student_id);",
+                  "}",
+                  "console.log(\"Saved access_token:\", pm.environment.get(\"access_token\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Roles",
+      "item": [
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"STUDENT\",\n  \"slug\": \"student\",\n  \"description\": \"Role for students\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/role/create/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "role",
+                "create",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "List Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/role/roles/?page=1&items_per_page=10",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "role",
+                "roles",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/user/users/?page=1&items_per_page=10",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "users",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tutor",
+      "item": [
+        {
+          "name": "Create Tutor Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"academic_program\": \"Software Engineering\",\n  \"bio\": \"Experienced backend tutor\",\n  \"phone\": \"+1234567890\",\n  \"teaching_style\": \"Hands-on\",\n  \"hourly_price\": 40,\n  \"is_visible\": true,\n  \"accepting_requests\": true,\n  \"tags\": [\"python\", \"fastapi\", \"sqlalchemy\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/create/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "create",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData && jsonData.data && jsonData.data.id) {",
+                  "  pm.environment.set(\"tutor_id\", jsonData.data.id);",
+                  "}",
+                  "if (jsonData && jsonData.data && jsonData.data.user_id) {",
+                  "  pm.environment.set(\"user_id\", jsonData.data.user_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Tutors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/tutors/?page=1&items_per_page=10&sort=rating:desc&academic_program=Computer%20Science&teaching_style=Project-based",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "tutors",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "rating:desc"
+                },
+                {
+                  "key": "academic_program",
+                  "value": "Computer Science"
+                },
+                {
+                  "key": "teaching_style",
+                  "value": "Project-based"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Hide My Tutor Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_visible\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/me/visibility/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "me",
+                "visibility",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Tutor Filter Options",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/filter-options/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "filter-options",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Reactivate My Tutor Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_visible\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/me/visibility/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "me",
+                "visibility",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Pause My Tutor Availability",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accepting_requests\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/me/availability/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "me",
+                "availability",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Resume My Tutor Availability",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accepting_requests\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/me/availability/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "me",
+                "availability",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Update Tutor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"{{full_name}}\",\n  \"academic_program\": \"Backend Engineering\",\n  \"bio\": \"Updated bio\",\n  \"hourly_price\": 45\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/{{tutor_id}}",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "{{tutor_id}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Upload Tutor Profile Picture",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/{{tutor_id}}/upload-profile-picture",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "{{tutor_id}}",
+                "upload-profile-picture"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Upload Tutor Cover Picture",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/{{tutor_id}}/upload-cover-picture",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "{{tutor_id}}",
+                "upload-cover-picture"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Delete Tutor Profile Picture",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/{{tutor_id}}/profile-picture",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "{{tutor_id}}",
+                "profile-picture"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Delete Tutor Cover Picture",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/{{tutor_id}}/cover-picture",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "{{tutor_id}}",
+                "cover-picture"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "My Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/my-services/?page=1&items_per_page=10",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "my-services",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "My Service Revisions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/my-service_revisions/?page=1&items_per_page=10",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "my-service_revisions",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "My Tutor Revisions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/my-tutor_revisions/?page=1&items_per_page=10&tutor_id={{tutor_id}}",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "my-tutor_revisions",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "tutor_id",
+                  "value": "{{tutor_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Report Tutor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tutor_id\": \"{{tutor_id}}\",\n  \"reason\": \"Misleading profile and pricing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/report/tutor/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "report",
+                "tutor",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Report Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_id\": \"{{service_id}}\",\n  \"reason\": \"Spam and inappropriate content\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/report/service/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "report",
+                "service",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "List Reported Tutors (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/report/tutor/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "report",
+                "tutor",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "List Reported Services (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/report/service/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "report",
+                "service",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Disable Reported Tutor (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/report/tutor/{{report_id}}/disable/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "report",
+                "tutor",
+                "{{report_id}}",
+                "disable",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Disable Reported Service (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/report/service/{{report_id}}/disable/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "report",
+                "service",
+                "{{report_id}}",
+                "disable",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Discard Reported Tutor (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/report/tutor/{{report_id}}/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "report",
+                "tutor",
+                "{{report_id}}",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Discard Reported Service (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/report/service/{{report_id}}/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "report",
+                "service",
+                "{{report_id}}",
+                ""
+              ],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        {
+          "name": "Create Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "tutor_id",
+                  "value": "{{tutor_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "service_name",
+                  "value": "Python FastAPI Bootcamp",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Backend development and API design course",
+                  "type": "text"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-09-15",
+                  "type": "text"
+                },
+                {
+                  "key": "time",
+                  "value": "09:00:00",
+                  "type": "text"
+                },
+                {
+                  "key": "end_time",
+                  "value": "11:00:00",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "50",
+                  "type": "text"
+                },
+                {
+                  "key": "level",
+                  "value": "BEGINNER",
+                  "type": "text"
+                },
+                {
+                  "key": "joining_link",
+                  "value": "https://meet.google.com/demo",
+                  "type": "text"
+                },
+                {
+                  "key": "tags",
+                  "value": "python,fastapi,backend",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/create/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "create",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData && jsonData.data && jsonData.data.id) {",
+                  "  pm.environment.set(\"service_id\", jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/services/?page=1&items_per_page=10&sort=price:asc&min_price=20&max_price=100",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "services",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "price:asc"
+                },
+                {
+                  "key": "min_price",
+                  "value": "20"
+                },
+                {
+                  "key": "max_price",
+                  "value": "100"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Upcoming Services By Tutor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/services/?page=1&items_per_page=10&tutor_id={{tutor_id}}&session_status=UPCOMING",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "services",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "tutor_id",
+                  "value": "{{tutor_id}}"
+                },
+                {
+                  "key": "session_status",
+                  "value": "UPCOMING"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Running Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/services/?page=1&items_per_page=10&session_status=RUNNING",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "services",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "session_status",
+                  "value": "RUNNING"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Completed Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/services/?page=1&items_per_page=10&session_status=COMPLETED",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "services",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "session_status",
+                  "value": "COMPLETED"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Service By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/{{service_id}}",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "{{service_id}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "tutor_id",
+                  "value": "{{tutor_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "service_name",
+                  "value": "Python FastAPI Masterclass",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Updated backend course description",
+                  "type": "text"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-09-20",
+                  "type": "text"
+                },
+                {
+                  "key": "time",
+                  "value": "10:00:00",
+                  "type": "text"
+                },
+                {
+                  "key": "end_time",
+                  "value": "12:00:00",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "60",
+                  "type": "text"
+                },
+                {
+                  "key": "level",
+                  "value": "INTERMEDIATE",
+                  "type": "text"
+                },
+                {
+                  "key": "tags",
+                  "value": "python,fastapi,api-design",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/{{service_id}}",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "{{service_id}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Delete Service",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/{{service_id}}?tutor_id={{tutor_id}}",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "{{service_id}}"
+              ],
+              "query": [
+                {
+                  "key": "tutor_id",
+                  "value": "{{tutor_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Service Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_id\": \"{{service_id}}\",\n  \"student_id\": \"{{student_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/create/booking/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "create",
+                "booking",
+                ""
+              ],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Service Bookings",
+      "item": [
+        {
+          "name": "List Service Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service-booking/service-bookings/?page=1&items_per_page=10",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service-booking",
+                "service-bookings",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Service Booking",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service-booking/{{booking_id}}/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service-booking",
+                "{{booking_id}}",
+                ""
+              ],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create Tutor Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tutor_id\": \"{{tutor_id}}\",\n  \"student_id\": \"{{student_id}}\",\n  \"rating\": 5,\n  \"comment\": \"Great learning experience\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/review/tutor",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "review",
+                "tutor"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Create Service Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_id\": \"{{service_id}}\",\n  \"student_id\": \"{{student_id}}\",\n  \"rating\": 5,\n  \"comment\": \"Very useful service\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/review/service",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "review",
+                "service"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Tutor Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/review/tutor?tutor_id={{tutor_id}}&page=1&items_per_page=10",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "review",
+                "tutor"
+              ],
+              "query": [
+                {
+                  "key": "tutor_id",
+                  "value": "{{tutor_id}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Service Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/review/service?service_id={{service_id}}&page=1&items_per_page=10",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "review",
+                "service"
+              ],
+              "query": [
+                {
+                  "key": "service_id",
+                  "value": "{{service_id}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/dashboard/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "dashboard",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Admin dashboard returns 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.expect(jsonData.data).to.have.property(\"total_students\");",
+                  "pm.expect(jsonData.data).to.have.property(\"total_tutors\");",
+                  "pm.expect(jsonData.data).to.have.property(\"total_sessions\");",
+                  "pm.expect(jsonData.data).to.have.property(\"pending_items\");",
+                  "pm.expect(jsonData.data.monthly_sessions_done).to.be.an(\"array\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Tutors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tutors/?limit=100&offset=0",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "tutors",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disable Tutor Account",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"INACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tutors/{{tutor_id}}/status/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "tutors",
+                "{{tutor_id}}",
+                "status",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Enable Tutor Account",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tutors/{{tutor_id}}/status/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "tutors",
+                "{{tutor_id}}",
+                "status",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Pending Service Revisions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/service_revisions/pending/?limit=100&offset=0",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "service_revisions",
+                "pending",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Service Revision",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/service_revisions/{{service_revision_id}}/approve/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "service_revisions",
+                "{{service_revision_id}}",
+                "approve",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Reject Service Revision",
+          "description": "Rejects a pending service revision and sends a notification to the tutor with the rejection reason.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejection_reason\": \"Not meeting quality standards\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/service_revisions/{{service_revision_id}}/reject/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "service_revisions",
+                "{{service_revision_id}}",
+                "reject",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Pending Tutor Revisions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tutor_revisions/pending/?limit=100&offset=0",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "tutor_revisions",
+                "pending",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Tutor Revision",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tutor_revisions/{{tutor_revision_id}}/approve/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "tutor_revisions",
+                "{{tutor_revision_id}}",
+                "approve",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Reject Tutor Revision",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejection_reason\": \"Needs more details\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tutor_revisions/{{tutor_revision_id}}/reject/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "tutor_revisions",
+                "{{tutor_revision_id}}",
+                "reject",
+                ""
+              ],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Favorites",
+      "item": [
+        {
+          "name": "Favorite Tutor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"favorite\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/favorites/tutors/{{tutor_id}}/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "favorites",
+                "tutors",
+                "{{tutor_id}}",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Unfavorite Tutor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"favorite\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/favorites/tutors/{{tutor_id}}/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "favorites",
+                "tutors",
+                "{{tutor_id}}",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Favorite Service",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"favorite\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/favorites/services/{{service_id}}/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "favorites",
+                "services",
+                "{{service_id}}",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Unfavorite Service",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"favorite\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/favorites/services/{{service_id}}/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "favorites",
+                "services",
+                "{{service_id}}",
+                ""
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "List Favorite Tutors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tutor/tutors/?favorite_only=true&page=1&items_per_page=10",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tutor",
+                "tutors",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "favorite_only",
+                  "value": "true"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Favorite Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/services/?favorite_only=true&page=1&items_per_page=10",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "services",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "favorite_only",
+                  "value": "true"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "items_per_page",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboards",
+      "item": [
+        {
+          "name": "Tutor Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/tutor/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard",
+                "tutor",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Tutor dashboard returns 200\", function () {\n  pm.response.to.have.status(200);\n});",
+                  "var jsonData = pm.response.json();",
+                  "pm.expect(jsonData).to.have.property(\"data\");",
+                  "pm.expect(jsonData.data).to.have.property(\"cards\");",
+                  "pm.expect(jsonData.data).to.have.property(\"upcoming_sessions\");",
+                  "pm.expect(jsonData.data).to.have.property(\"performance\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/student/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard",
+                "student",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Student dashboard returns 200\", function () {\n  pm.response.to.have.status(200);\n});",
+                  "var jsonData = pm.response.json();",
+                  "pm.expect(jsonData).to.have.property(\"data\");",
+                  "pm.expect(jsonData.data).to.have.property(\"total_upcoming_sessions\");",
+                  "pm.expect(jsonData.data).to.have.property(\"total_available_tutors\");",
+                  "pm.expect(jsonData.data).to.have.property(\"sessions_in_current_month\");",
+                  "pm.expect(jsonData.data).to.have.property(\"tutors_in_current_month\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/notifications/?limit=50&offset=0&unread_only=false",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "unread_only",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Notifications request succeeds\", function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property(\"data\");",
+                  "  pm.expect(jsonData).to.have.property(\"metadata\");",
+                  "  var allowedTypes = [\"SERVICE_BOOKED\", \"SERVICE_APPROVED\", \"SERVICE_REVISION_APPROVED\", \"SERVICE_UPDATED\"];",
+                  "  jsonData.data.forEach(function (notification) {",
+                  "    pm.expect(allowedTypes).to.include(notification.notification_type);",
+                  "  });",
+                  "  if (jsonData.data && jsonData.data.length > 0 && jsonData.data[0].id) {",
+                  "    pm.environment.set(\"notification_id\", jsonData.data[0].id);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Unread Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/notifications/?unread_only=true&limit=50&offset=0",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "unread_only",
+                  "value": "true"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Unread notifications request succeeds\", function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  var jsonData = pm.response.json();",
+                  "  jsonData.data.forEach(function (notification) {",
+                  "    pm.expect(notification.is_read).to.eql(false);",
+                  "  });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/notifications/{{notification_id}}/read/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "{{notification_id}}",
+                "read",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Mark notification read returns expected status\", function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  pm.expect(pm.response.json().data.is_read).to.eql(true);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark All Notifications Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/notifications/read-all/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "read-all",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Mark all notifications read returns expected status\", function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  pm.expect(pm.response.json().data).to.have.property(\"updated_count\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Service Attachments",
+      "item": [
+        {
+          "name": "Upload Service Attachment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "{{attachment_file}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/{{service_id}}/attachments/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "{{service_id}}",
+                "attachments",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Attachment upload returns expected status\", function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 403, 404, 503]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property(\"id\");",
+                  "  pm.expect(jsonData.data).to.have.property(\"download_url\");",
+                  "  pm.environment.set(\"attachment_id\", jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Service Attachments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/{{service_id}}/attachments/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "{{service_id}}",
+                "attachments",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Attachment list returns expected status\", function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.be.an(\"array\");",
+                  "  if (jsonData.data.length > 0) pm.environment.set(\"attachment_id\", jsonData.data[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Generate Attachment Download URL",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/attachments/{{attachment_id}}/download/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "attachments",
+                "{{attachment_id}}",
+                "download",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Attachment download returns expected status\", function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 401, 404, 503]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  pm.expect(pm.response.json().data.download_url).to.be.a(\"string\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Service Attachment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service/attachments/{{attachment_id}}/",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "service",
+                "attachments",
+                "{{attachment_id}}",
+                ""
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Attachment delete returns expected status\", function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 401, 404, 503]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  pm.expect(pm.response.json().data.deleted).to.eql(true);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "Create Direct Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_user_id\": \"{{target_user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/rooms/direct",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "chat",
+                "rooms",
+                "direct"
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData && jsonData.chat_room_id) {",
+                  "  pm.environment.set(\"chat_room_id\", jsonData.chat_room_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Group Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Team Chat\",\n  \"member_ids\": [\"{{user_id}}\", \"{{target_user_id}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/rooms/group",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "chat",
+                "rooms",
+                "group"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Check Direct Room",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/rooms/direct?target_user_id={{target_user_id}}",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "chat",
+                "rooms",
+                "direct"
+              ],
+              "query": [
+                {
+                  "key": "target_user_id",
+                  "value": "{{target_user_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List My Chat Rooms",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/rooms",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "chat",
+                "rooms"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Single Chat Room",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/rooms/{{chat_room_id}}",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "chat",
+                "rooms",
+                "{{chat_room_id}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get Room Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/rooms/{{chat_room_id}}/messages?limit=30",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "chat",
+                "rooms",
+                "{{chat_room_id}}",
+                "messages"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "WebSocket Chat",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "ws://localhost:8002/api/v1/chat/ws/{{user_id}}?token={{access_token}}",
+              "protocol": "ws",
+              "host": [
+                "localhost:8002"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "chat",
+                "ws",
+                "{{user_id}}"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}"
+                }
+              ]
+            }
+          },
+          "description": "Sample WebSocket endpoint for chat; use this in Postman WebSocket requests."
+        }
+      ]
+    }
+  ]
+}

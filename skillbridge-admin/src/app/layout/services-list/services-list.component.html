@@ -1,0 +1,66 @@
+<section class="entity-list">
+  <header class="entity-list__header">
+    <div>
+      <h1>Services</h1>
+      <p>Every service on the platform. Disabled services are hidden from students.</p>
+    </div>
+    <span class="entity-list__count">{{ visibleServices.length }} services</span>
+  </header>
+
+  <div class="entity-list__search">
+    <input type="text" [(ngModel)]="search" placeholder="Search by service or tutor name"
+      aria-label="Search services" />
+  </div>
+
+  <p class="entity-list__state entity-list__state--error" *ngIf="error">{{ error }}</p>
+  <p class="entity-list__state entity-list__state--ok" *ngIf="notice">{{ notice }}</p>
+  <p class="entity-list__state" *ngIf="loading">Loading services...</p>
+
+  <div class="entity-list__table-wrapper" *ngIf="!loading">
+    <table class="entity-table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Tutor</th>
+          <th>Date</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let service of visibleServices" class="entity-table__row"
+          (click)="openService(service)" tabindex="0" role="button"
+          [attr.aria-label]="'Open ' + service.service_name"
+          (keydown.enter)="openService(service)">
+          <td>
+            <div class="cell-primary">{{ service.service_name }}</div>
+            <div class="cell-secondary">{{ service.level || '—' }}</div>
+          </td>
+          <td>{{ service.tutor?.full_name || '—' }}</td>
+          <td>{{ service.date ? (service.date | date:'mediumDate') : '—' }}</td>
+          <td>{{ service.price != null ? (service.price | currency:'EUR') : '—' }}</td>
+          <td>
+            <span class="state-badge"
+              [class.state-badge--on]="!isDisabled(service)"
+              [class.state-badge--off]="isDisabled(service)">
+              {{ isDisabled(service) ? 'Disabled' : 'Active' }}
+            </span>
+          </td>
+          <td>
+            <!-- Stop the row handler so the button does not also open the modal. -->
+            <button type="button" class="entity-btn"
+              [class.entity-btn--danger]="!isDisabled(service)"
+              (click)="$event.stopPropagation();
+                       setStatus(service, isDisabled(service) ? 'ACTIVE' : 'INACTIVE')">
+              {{ isDisabled(service) ? 'Enable' : 'Disable' }}
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!visibleServices.length">
+          <td colspan="6" class="entity-table__empty">No services found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

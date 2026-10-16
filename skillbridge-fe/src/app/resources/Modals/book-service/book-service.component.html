@@ -1,0 +1,156 @@
+<div class="drawer-container" [class.closing]="isClosing">
+
+  <!-- Header -->
+  <div class="drawer-header">
+    <div>
+      <h2 class="text-xl font-semibold">Service Booking</h2>
+      <p class="drawer-subtitle">
+        Verify the service details before confirming your booking.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      (click)="close()"
+      class="close-btn">
+      ✕
+    </button>
+  </div>
+
+  <!-- Service Card -->
+  <div class="booking-card" *ngIf="service">
+
+    <div class="booking-top">
+
+      <div class="booking-avatar">
+        {{ service.tutor.full_name.charAt(0) }}
+      </div>
+
+      <div class="booking-title">
+        <h3>{{ service.service_name }}</h3>
+
+        <p>
+          by
+          <strong>{{ service.tutor.full_name }}</strong>
+
+          <span
+            *ngIf="service.tutor.is_verified"
+            class="verified-badge">
+            ✓ Verified
+          </span>
+        </p>
+      </div>
+
+      <div class="price-card">
+        €{{ service.price }}
+        <span>per service</span>
+      </div>
+
+    </div>
+
+    <div class="booking-description">
+      {{ service.description }}
+    </div>
+
+    <div class="media-preview" *ngIf="mediaItems.length > 0">
+      <div class="media-preview__header">
+        <h4>Service preview</h4>
+        <span>{{ selectedMediaItem?.type === 'video' ? 'Video preview' : 'Image preview' }}</span>
+      </div>
+
+      <div class="media-preview__stage">
+        <ng-container *ngIf="selectedMediaItem?.type === 'video'; else imagePreview">
+          <video
+            [src]="selectedMediaItem?.url"
+            controls
+            preload="metadata"
+            playsinline
+            disablepictureinpicture
+            controlsList="nodownload noplaybackrate"
+            poster=""
+          ></video>
+        </ng-container>
+
+        <ng-template #imagePreview>
+          <img
+            *ngIf="selectedMediaItem?.url && !showMediaFallback"
+            [src]="selectedMediaItem?.url"
+            [alt]="service.service_name"
+            (error)="handleMediaError($event)"
+          />
+          <div class="media-preview__placeholder" *ngIf="showMediaFallback || !selectedMediaItem?.url">
+            <span>Preview unavailable</span>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="media-preview__thumbnails" *ngIf="mediaItems.length > 1">
+        <button
+          type="button"
+          class="media-preview__thumb"
+          *ngFor="let item of mediaItems"
+          [class.active]="selectedMediaItem?.url === item.url"
+          (click)="selectMedia(item)"
+        >
+          <ng-container *ngIf="item.type === 'image'; else videoThumb">
+            <img [src]="item.url" [alt]="service.service_name" />
+          </ng-container>
+          <ng-template #videoThumb>
+            <div class="media-preview__thumb-video">▶</div>
+          </ng-template>
+          <span>{{ item.type === 'video' ? 'Video' : 'Image' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="booking-grid">
+
+      <div class="info-card">
+        <span>Date</span>
+        <strong>{{ service.date | date:'EEEE, d MMMM y' }}</strong>
+      </div>
+
+      <div class="info-card">
+        <span>Time</span>
+        <strong>{{ (service.time || '00:00') | slice:0:5 }} - {{ (service.end_time || service.time || '00:00') | slice:0:5 }}</strong>
+      </div>
+
+      <div class="info-card">
+        <span>Level</span>
+        <strong>{{ service.level }}</strong>
+      </div>
+
+      <div class="info-card">
+        <span>Email</span>
+        <strong>{{ service.tutor.email }}</strong>
+      </div>
+
+    </div>
+
+    <div class="booking-note">
+      Once booked, you'll receive confirmation and the instructor will be notified.
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+
+  <div class="drawer-footer">
+
+    <button
+      type="button"
+      class="btn-secondary"
+      (click)="close()">
+      Cancel
+    </button>
+
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="confirmBooking()">
+      Book Service
+    </button>
+
+  </div>
+
+</div>

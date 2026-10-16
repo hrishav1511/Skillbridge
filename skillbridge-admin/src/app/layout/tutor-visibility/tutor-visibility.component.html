@@ -1,0 +1,64 @@
+<section class="tutor-visibility">
+  <header class="tutor-visibility__header">
+    <div>
+      <h1 class="tutor-visibility__title">Tutor Visibility</h1>
+      <p class="tutor-visibility__subtitle">Review which tutors are visible to students and accepting requests</p>
+    </div>
+    <span class="tutor-visibility__count">{{ tutors.length }} tutors</span>
+  </header>
+
+  <div class="tutor-visibility__table-wrapper">
+    <table class="visibility-table">
+      <thead>
+        <tr>
+          <th>Tutor</th>
+          <th>Program</th>
+          <th>Account Status</th>
+          <th>Visibility</th>
+          <th>Requests</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tutor of tutors">
+          <td>
+            <div class="cell-primary">{{ tutor.user?.full_name || '-' }}</div>
+            <div class="cell-secondary">{{ tutor.user?.email || '-' }}</div>
+          </td>
+          <td>{{ tutor.academic_program || '-' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="'status-badge--' + getStatusClass(tutor.account_status)">
+              {{ tutor.account_status || 'Unknown' }}
+            </span>
+          </td>
+          <td>
+            <span class="visibility-badge" [class.visibility-badge--visible]="tutor.is_visible"
+              [class.visibility-badge--hidden]="!tutor.is_visible">
+              {{ tutor.is_visible ? 'Visible' : 'Hidden' }}
+            </span>
+          </td>
+          <td>
+            <span class="request-state" [class.request-state--open]="tutor.accepting_requests"
+              [class.request-state--paused]="!tutor.accepting_requests">
+              {{ tutor.accepting_requests ? 'Accepting' : 'Paused' }}
+            </span>
+          </td>
+          <td>
+            <button type="button" class="account-btn"
+              [class.account-btn--danger]="tutor.account_status === 'ACTIVE'"
+              [disabled]="busyTutorId === tutor.id"
+              (click)="setAccountStatus(tutor, tutor.account_status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')">
+              <span *ngIf="busyTutorId === tutor.id" class="account-btn__spinner" aria-hidden="true"></span>
+              {{ busyTutorId === tutor.id
+                  ? 'Working...'
+                  : (tutor.account_status === 'ACTIVE' ? 'Deactivate' : 'Activate') }}
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!tutors.length" class="visibility-table__empty-row">
+          <td colspan="6">No tutors found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

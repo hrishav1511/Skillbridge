@@ -1,0 +1,128 @@
+<div class="drawer-container" [class.closing]="isClosing">
+
+  <!-- Header -->
+  <div class="drawer-header">
+    <div>
+      <h2 class="text-xl font-semibold">Tutor Review</h2>
+      <p class="mt-1 text-sm text-gray-400">
+        See what others say about the tutor and maybe put in a good word 
+      </p>
+    </div>
+
+    <button
+      type="button"
+      (click)="close()"
+      class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-800 hover"
+    >
+      ✕
+    </button>
+  </div>
+
+<div class="drawer-body">
+
+  <div class="reviews-list" *ngIf="reviewList?.length">
+
+    <div class="review-card" *ngFor="let review of reviewList">
+
+      <div class="review-header">
+        <div class="review-avatar">
+          {{ getInitials(review.student?.full_name || 'Anonymous Student') }}
+        </div>
+        <div class="review-user">
+          <h4>
+            {{ review.student?.full_name || 'Anonymous Student' }}
+          </h4>
+          <div class="rating">
+            <i
+              class="bi bi-star-fill"
+              *ngFor="let star of [1,2,3,4,5]"
+              [class.active]="star <= review.rating">
+            </i>
+          </div>
+        </div>
+        <span class="rating-badge">
+          {{ review.rating }}/5
+        </span>
+      </div>
+
+      <p class="review-comment">
+        "{{ review.comment }}"
+      </p>
+
+      <div class="review-footer">
+        <span class="review-date">
+          <i class="bi bi-clock"></i>
+          {{ review.created_at | date: 'mediumDate' }}
+        </span>
+        <button
+          type="button"
+          class="report-review-btn"
+          *ngIf="canReportReviews()"
+          (click)="reportReview(review)">
+          Report review
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <ng-container *ngIf="!reviewList?.length">
+    <div class="reviews-empty">
+      <div class="reviews-empty__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+      </div>
+      <p class="reviews-empty__title">No reviews yet</p>
+      <!-- <p class="reviews-empty__text">Your first student review will appear here once it's submitted.</p> -->
+    </div>
+  </ng-container>
+
+</div>
+
+<div class="review-comment-footer">
+
+    <div class="stars">
+
+      <button
+        type="button"
+        *ngFor="let star of [1,2,3,4,5]"
+        (click)="setRating(star)"
+        [class.active]="star <= selectedRating">
+
+        ★
+
+      </button>
+
+    </div>
+    <form [formGroup]="reviewForm">
+
+    <textarea class="comment_area"
+      formControlName="comment"
+      maxlength="500"
+      rows="3"
+      placeholder="Share your experience...">
+    </textarea>
+        <span *ngIf="reviewForm.get('comment')?.hasError('minlength')">
+
+        Review must be at least 10 characters.
+
+    </span>
+    </form>
+    <div class="review-bottom">
+
+      <span>{{comment.length}} / 500</span>
+
+      <button
+        class="submit-review-btn"
+        (click)="submitReview()" [disabled]="reviewForm.invalid || selectedRating === 0">
+
+        Submit Review
+
+      </button>
+
+    </div>
+
+  </div>
+  </div>

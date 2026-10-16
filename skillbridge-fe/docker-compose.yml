@@ -1,0 +1,10 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: skillbridge-fe-app
+    container_name: skillbridge-fe-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"

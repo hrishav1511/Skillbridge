@@ -1,0 +1,338 @@
+name: Provision S3 Media Bucket and Attach IAM Role to EC2
+
+on:
+  workflow_dispatch:
+    inputs:
+      s3_bucket_name:
+        description: "Globally unique S3 bucket name for tutor photos/videos"
+        required: true
+        default: "skillbridgeacademy-tutor-media"
+        type: string
+
+      ec2_instance_name:
+        description: "Existing EC2 Name tag"
+        required: true
+        default: "skillbridge-about-page-server"
+        type: string
+
+      media_prefix:
+        description: "Folder/prefix inside S3 bucket"
+        required: true
+        default: "tutor-media"
+        type: string
+
+      iam_role_name:
+        description: "IAM role name for EC2 S3 media access"
+        required: true
+        default: "skillbridge-ec2-s3-media-role"
+        type: string
+
+      instance_profile_name:
+        description: "IAM instance profile name"
+        required: true
+        default: "skillbridge-ec2-s3-media-profile"
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  provision-s3-role:
+    name: Create S3 bucket and attach IAM role to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate inputs and secrets
+        run: |
+          set -e
+
+          if [ -z "${AWS_REGION}" ]; then
+            echo "AWS_REGION is empty. Check GitHub secret AWS_REGION."
+            exit 1
+          fi
+
+          if [ -z "${{ inputs.s3_bucket_name }}" ]; then
+            echo "s3_bucket_name is empty."
+            exit 1
+          fi
+
+          echo "AWS region: ${AWS_REGION}"
+          echo "S3 bucket: ${{ inputs.s3_bucket_name }}"
+          echo "EC2 instance name: ${{ inputs.ec2_instance_name }}"
+
+      - name: Find existing EC2 instance
+        run: |
+          set -e
+
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters \
+              "Name=tag:Name,Values=${{ inputs.ec2_instance_name }}" \
+              "Name=instance-state-name,Values=pending,running,stopping,stopped" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+
+          if [ "${INSTANCE_ID}" = "None" ] || [ -z "${INSTANCE_ID}" ]; then
+            echo "No EC2 instance found with Name tag: ${{ inputs.ec2_instance_name }}"
+            echo "Run your EC2 provision/deploy workflow first."
+            exit 1
+          fi
+
+          echo "Found EC2 instance: ${INSTANCE_ID}"
+          echo "INSTANCE_ID=${INSTANCE_ID}" >> "$GITHUB_ENV"
+
+      - name: Create private S3 bucket if missing
+        run: |
+          set -e
+
+          BUCKET_NAME="${{ inputs.s3_bucket_name }}"
+
+          if aws s3api head-bucket --bucket "${BUCKET_NAME}" 2>/dev/null; then
+            echo "S3 bucket already exists and is accessible: ${BUCKET_NAME}"
+          else
+            echo "Creating S3 bucket: ${BUCKET_NAME}"
+
+            if [ "${AWS_REGION}" = "us-east-1" ]; then
+              aws s3api create-bucket \
+                --bucket "${BUCKET_NAME}"
+            else
+              aws s3api create-bucket \
+                --bucket "${BUCKET_NAME}" \
+                --create-bucket-configuration LocationConstraint="${AWS_REGION}"
+            fi
+
+            echo "Created S3 bucket: ${BUCKET_NAME}"
+          fi
+
+      - name: Secure S3 bucket
+        run: |
+          set -e
+
+          BUCKET_NAME="${{ inputs.s3_bucket_name }}"
+
+          echo "Blocking all public access..."
+          aws s3api put-public-access-block \
+            --bucket "${BUCKET_NAME}" \
+            --public-access-block-configuration \
+              BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+
+          echo "Enabling S3 server-side encryption..."
+          aws s3api put-bucket-encryption \
+            --bucket "${BUCKET_NAME}" \
+            --server-side-encryption-configuration '{
+              "Rules": [
+                {
+                  "ApplyServerSideEncryptionByDefault": {
+                    "SSEAlgorithm": "AES256"
+                  }
+                }
+              ]
+            }'
+
+          echo "Adding lifecycle rule to clean incomplete multipart uploads..."
+          cat > lifecycle.json <<EOF
+          {
+            "Rules": [
+              {
+                "ID": "AbortIncompleteMultipartUploads",
+                "Status": "Enabled",
+                "Filter": {
+                  "Prefix": "${{ inputs.media_prefix }}/"
+                },
+                "AbortIncompleteMultipartUpload": {
+                  "DaysAfterInitiation": 7
+                }
+              }
+            ]
+          }
+          EOF
+
+          aws s3api put-bucket-lifecycle-configuration \
+            --bucket "${BUCKET_NAME}" \
+            --lifecycle-configuration file://lifecycle.json
+
+      - name: Create IAM role for EC2 if missing
+        run: |
+          set -e
+
+          ROLE_NAME="${{ inputs.iam_role_name }}"
+
+          cat > trust-policy.json <<EOF
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "ec2.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+              }
+            ]
+          }
+          EOF
+
+          if aws iam get-role --role-name "${ROLE_NAME}" >/dev/null 2>&1; then
+            echo "IAM role already exists: ${ROLE_NAME}"
+          else
+            aws iam create-role \
+              --role-name "${ROLE_NAME}" \
+              --assume-role-policy-document file://trust-policy.json
+
+            echo "Created IAM role: ${ROLE_NAME}"
+          fi
+
+      - name: Attach S3 media permission policy to IAM role
+        run: |
+          set -e
+
+          BUCKET_NAME="${{ inputs.s3_bucket_name }}"
+          PREFIX="${{ inputs.media_prefix }}"
+          ROLE_NAME="${{ inputs.iam_role_name }}"
+
+          cat > s3-media-policy.json <<EOF
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Sid": "AllowBucketLocation",
+                "Effect": "Allow",
+                "Action": [
+                  "s3:GetBucketLocation"
+                ],
+                "Resource": "arn:aws:s3:::${BUCKET_NAME}"
+              },
+              {
+                "Sid": "AllowListOnlyTutorMediaPrefix",
+                "Effect": "Allow",
+                "Action": [
+                  "s3:ListBucket"
+                ],
+                "Resource": "arn:aws:s3:::${BUCKET_NAME}",
+                "Condition": {
+                  "StringLike": {
+                    "s3:prefix": [
+                      "${PREFIX}",
+                      "${PREFIX}/*"
+                    ]
+                  }
+                }
+              },
+              {
+                "Sid": "AllowTutorMediaObjectAccess",
+                "Effect": "Allow",
+                "Action": [
+                  "s3:GetObject",
+                  "s3:PutObject",
+                  "s3:DeleteObject",
+                  "s3:AbortMultipartUpload",
+                  "s3:ListMultipartUploadParts"
+                ],
+                "Resource": "arn:aws:s3:::${BUCKET_NAME}/${PREFIX}/*"
+              }
+            ]
+          }
+          EOF
+
+          aws iam put-role-policy \
+            --role-name "${ROLE_NAME}" \
+            --policy-name "SkillBridgeTutorMediaS3Access" \
+            --policy-document file://s3-media-policy.json
+
+          echo "Attached S3 media policy to role: ${ROLE_NAME}"
+
+      - name: Create instance profile and add role
+        run: |
+          set -e
+
+          ROLE_NAME="${{ inputs.iam_role_name }}"
+          PROFILE_NAME="${{ inputs.instance_profile_name }}"
+
+          if aws iam get-instance-profile --instance-profile-name "${PROFILE_NAME}" >/dev/null 2>&1; then
+            echo "Instance profile already exists: ${PROFILE_NAME}"
+          else
+            aws iam create-instance-profile \
+              --instance-profile-name "${PROFILE_NAME}"
+
+            echo "Created instance profile: ${PROFILE_NAME}"
+          fi
+
+          ROLE_ALREADY_IN_PROFILE=$(aws iam get-instance-profile \
+            --instance-profile-name "${PROFILE_NAME}" \
+            --query "InstanceProfile.Roles[?RoleName=='${ROLE_NAME}'].RoleName | [0]" \
+            --output text)
+
+          if [ "${ROLE_ALREADY_IN_PROFILE}" = "${ROLE_NAME}" ]; then
+            echo "Role is already in instance profile."
+          else
+            aws iam add-role-to-instance-profile \
+              --instance-profile-name "${PROFILE_NAME}" \
+              --role-name "${ROLE_NAME}"
+
+            echo "Added role ${ROLE_NAME} to instance profile ${PROFILE_NAME}"
+          fi
+
+          echo "Waiting for IAM instance profile propagation..."
+          sleep 20
+
+      - name: Attach instance profile to EC2
+        run: |
+          set -e
+
+          PROFILE_NAME="${{ inputs.instance_profile_name }}"
+
+          ASSOCIATION_ID=$(aws ec2 describe-iam-instance-profile-associations \
+            --filters "Name=instance-id,Values=${INSTANCE_ID}" \
+            --query "IamInstanceProfileAssociations[0].AssociationId" \
+            --output text)
+
+          CURRENT_PROFILE_ARN=$(aws ec2 describe-iam-instance-profile-associations \
+            --filters "Name=instance-id,Values=${INSTANCE_ID}" \
+            --query "IamInstanceProfileAssociations[0].IamInstanceProfile.Arn" \
+            --output text)
+
+          if [ "${ASSOCIATION_ID}" = "None" ] || [ -z "${ASSOCIATION_ID}" ]; then
+            echo "No IAM instance profile attached. Attaching ${PROFILE_NAME}..."
+
+            aws ec2 associate-iam-instance-profile \
+              --instance-id "${INSTANCE_ID}" \
+              --iam-instance-profile Name="${PROFILE_NAME}"
+
+            echo "Attached instance profile ${PROFILE_NAME} to ${INSTANCE_ID}"
+          else
+            echo "EC2 already has an instance profile: ${CURRENT_PROFILE_ARN}"
+
+            if echo "${CURRENT_PROFILE_ARN}" | grep -q "/${PROFILE_NAME}$"; then
+              echo "Correct instance profile is already attached."
+            else
+              echo "Replacing existing instance profile with ${PROFILE_NAME}..."
+
+              aws ec2 replace-iam-instance-profile-association \
+                --association-id "${ASSOCIATION_ID}" \
+                --iam-instance-profile Name="${PROFILE_NAME}"
+
+              echo "Replaced instance profile on ${INSTANCE_ID}"
+            fi
+          fi
+
+      - name: Print backend environment variables
+        run: |
+          echo "S3 setup completed."
+          echo ""
+          echo "Add these values to your backend .env or GitHub BACKEND_ENV_FILE secret:"
+          echo ""
+          echo "STORAGE_DRIVER=s3"
+          echo "AWS_REGION=${AWS_REGION}"
+          echo "S3_BUCKET_NAME=${{ inputs.s3_bucket_name }}"
+          echo "S3_TUTOR_MEDIA_PREFIX=${{ inputs.media_prefix }}"
+          echo ""
+          echo "EC2 instance ID: ${INSTANCE_ID}"

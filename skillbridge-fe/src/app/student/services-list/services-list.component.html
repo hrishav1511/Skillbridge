@@ -1,0 +1,168 @@
+<div class="services-page mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <header class="services-heading">
+        <div>
+            <p class="eyebrow">Student workspace</p>
+            <h1>Booked services</h1>
+            <p>Everything you need for your upcoming lessons, in one place.</p>
+        </div>
+        <div class="service-count"><strong>{{ booked_service_list?.length || 0 }}</strong><span>services</span></div>
+    </header>
+
+    <div class="booked-service-card" *ngFor="let item of booked_service_list" [id]="serviceAnchorId(item)">
+        <div class="service-main">
+            <div class="service-avatar">
+                {{ item.tutor.user.full_name.split(' ')[0][0] }}{{ item.tutor.user.full_name.split(' ').length > 1 ? item.tutor.user.full_name.split(' ')[1][0] : '' }}
+            </div>
+            <div class="service-info">
+                <div class="service-header">
+                    <div>
+                        <p class="service-kicker">{{ bookingStatus(item) }} service request</p>
+                        <h2>{{ item.service.service_name }}</h2>
+                        <p class="service-description">{{ item.service.description }}</p>
+                    </div>
+                    <span class="level">{{ item.service.level }}</span>
+                </div>
+                <div class="service-meta">
+                    <span><i class="bi bi-calendar3"></i>{{ serviceStart(item) | date:'MMM d, y' }}</span>
+                    <span><i class="bi bi-clock"></i>{{ formatServiceTimeRange(item) }}</span>
+                    <span><i class="bi bi-person"></i>{{ item.tutor.user.full_name }}</span>
+                </div>
+
+                <!--
+                  Live countdown, matching the tutor service view. countdownTick
+                  advances every second, which is what re-evaluates countdown().
+                -->
+                <p class="service-countdown" *ngIf="isUpcoming(item)" [attr.data-tick]="countdownTick">
+                    <i class="bi bi-hourglass-split"></i>
+                    Starts in {{ countdown(item) }}
+                </p>
+            </div>
+        </div>
+
+        <aside class="service-rail">
+            <span class="rail-label">Request status</span>
+            <strong class="service-status" [class.started]="!isUpcoming(item) && !isFinished(item)" [class.finished]="isFinished(item)">
+                {{ bookingStatus(item) }}
+            </strong>
+            <span class="rail-date">{{ serviceStart(item) | date:'EEEE, MMM d' }}</span>
+        </aside>
+
+        <div class="service-lower">
+            <section class="resources-panel">
+                <div class="media-gallery" *ngIf="serviceMedia(item).length">
+                    <button
+                        type="button"
+                        class="media-gallery__header"
+                        [attr.aria-expanded]="isMediaExpanded(item)"
+                        (click)="toggleMedia(item)">
+                        <h3><i class="bi bi-images"></i> Service media</h3>
+                        <i class="bi" [class.bi-chevron-down]="!isMediaExpanded(item)" [class.bi-chevron-up]="isMediaExpanded(item)" [class.is-expanded]="isMediaExpanded(item)"></i>
+                    </button>
+
+                    <div class="media-gallery__content" [class.is-expanded]="isMediaExpanded(item)">
+                        <div class="media-gallery__stage" *ngIf="currentMedia(item) as mainMedia">
+                        <button type="button" class="media-gallery__nav media-gallery__nav--prev" (click)="moveMedia(item, -1)" aria-label="Previous media">
+                            ‹
+                        </button>
+
+                        <div class="media-gallery__main">
+                            <img *ngIf="mainMedia.type === 'image'" [src]="mainMedia.url" [alt]="item.service.service_name" />
+                            <video *ngIf="mainMedia.type === 'video'" [src]="mainMedia.url" controls playsinline></video>
+                        </div>
+
+                        <button type="button" class="media-gallery__nav media-gallery__nav--next" (click)="moveMedia(item, 1)" aria-label="Next media">
+                            ›
+                        </button>
+                        </div>
+
+                        <div class="media-gallery__list" *ngIf="serviceMedia(item).length > 1">
+                        <button
+                            type="button"
+                            class="media-gallery__item"
+                            *ngFor="let media of serviceMedia(item); let i = index"
+                            [class.is-active]="(currentMediaIndexByService[item.service.id] ?? 0) === i"
+                            (click)="setMediaIndex(item, i)">
+                            <img *ngIf="media.type === 'image'" [src]="media.url" [alt]="item.service.service_name" />
+                            <video *ngIf="media.type === 'video'" [src]="media.url" controls playsinline></video>
+                        </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="resources-heading">
+                    <div>
+                        <h3><i class="bi bi-folder2-open"></i> Shared resources</h3>
+                        <p *ngIf="!loadingAttachments[item.service.id]">{{ attachmentsFor(item).length ? 'Materials from your tutor' : 'No materials shared yet' }}</p>
+                        <p *ngIf="loadingAttachments[item.service.id]">Checking for resources...</p>
+                    </div>
+                    <div class="resource-heading-actions">
+                        <span class="resource-count">{{ attachmentsFor(item).length }}</span>
+                        <button
+                            *ngIf="attachmentsFor(item).length > 4"
+                            class="resource-toggle"
+                            type="button"
+                            [attr.aria-expanded]="isResourcesExpanded(item)"
+                            (click)="toggleResources(item)">
+                            {{ isResourcesExpanded(item) ? 'Show less' : 'View all' }}
+                        </button>
+                    </div>
+                </div>
+                <div class="resource-list" [class.resource-list--expanded]="isResourcesExpanded(item)" *ngIf="attachmentsFor(item).length">
+                    <a *ngFor="let attachment of visibleAttachments(item)" [href]="attachment.download_url" target="_blank" rel="noopener noreferrer">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>{{ attachment.original_filename || 'Shared resource' }}</span>
+                        <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                </div>
+            </section>
+
+            <div class="service-actions">
+                <div class="price"><strong>€{{ item.service.price }}</strong><span>per service</span></div>
+                <span class="note" *ngIf="isUpcoming(item)">Available when the service starts</span>
+                <span class="note" *ngIf="isFinished(item)">Service has passed</span>
+                <button class="review-btn" type="button" (click)="openReviewModal(item)" *ngIf="isReviewAvailable(item)">
+                    <i class="bi bi-star-fill"></i> Leave review
+                </button>
+                <a class="join-btn" [href]="item.service.joining_link" target="_blank" 
+                *ngIf="canJoin(item)">
+                    <i class="bi bi-box-arrow-up-right"></i> Join service
+                </a>
+                <div class="note" *ngIf="pendingProposal(item) as proposal">
+                    Proposed: {{ proposal.proposed_start_at | date:'medium' }}
+                    <span *ngIf="proposal.proposed_by_user_id === currentUserId"> · awaiting tutor response</span>
+                </div>
+                <button class="review-btn" type="button" (click)="respondToProposal(item, true)" *ngIf="canRespondToProposal(item)">Accept new time</button>
+                <button class="cancel-btn" type="button" (click)="respondToProposal(item, false)" *ngIf="canRespondToProposal(item)">Reject new time</button>
+                <button class="review-btn" type="button" (click)="proposeReschedule(item)" *ngIf="canReschedule(item)">
+                    <i class="bi bi-calendar-event"></i> Propose new time
+                </button>
+                <button class="cancel-btn" type="button" (click)="cancelBooking(item)" [disabled]="cancellingBookings[bookingId(item)]" *ngIf="canCancel(item)">
+                    <i class="bi bi-x-lg"></i>{{ cancellingBookings[bookingId(item)] ? 'Cancelling...' : 'Cancel booking' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="!booked_service_list?.length" class="empty-services">
+  <div class="empty-services__icon">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="16" y1="2" x2="16" y2="6"></line>
+      <line x1="8" y1="2" x2="8" y2="6"></line>
+      <line x1="3" y1="10" x2="21" y2="10"></line>
+    </svg>
+  </div>
+  <h3 class="empty-services__title">No services booked yet</h3>
+  <p class="empty-services__text">
+    It looks like you don’t have any upcoming services. Book a service with your tutor to get started and track your progress here.
+  </p>
+  <button class="empty-services__cta" (click)="bookService()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+    Book a service
+  </button>
+</div>
+
+</div>

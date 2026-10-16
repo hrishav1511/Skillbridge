@@ -1,0 +1,105 @@
+<nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="h-16 flex items-center justify-between">
+
+      <div class="flex items-center gap-3">
+        <a [routerLink]="['/tutor/dashboard']" class="app-nav__logo" aria-label="Go to dashboard">
+          <img src="/assets/minlogo.png" alt="SkillBridge" class="h-8 w-8">
+        </a>
+      </div>
+
+      <div class="desktop-nav hidden md:flex items-center gap-8">
+        <a routerLinkActive="app-nav__link--active" [routerLinkActiveOptions]="{ exact: true }" class="app-nav__link"
+          [routerLink]="['/tutor/dashboard']">Dashboard</a>
+        <a routerLinkActive="app-nav__link--active" [routerLinkActiveOptions]="{ exact: true }" class="app-nav__link"
+          [routerLink]="['/tutor/my-messages']">Messages <span class="nav-badge" *ngIf="unreadConversations > 0"
+            [attr.aria-label]="unreadConversations + ' conversations with unread messages'">{{ unreadConversations > 9 ? '9+' : unreadConversations }}</span></a>
+        <!-- <a class="text-slate-600 hover:text-slate-900">Earnings</a> -->
+      </div>
+
+      <div class="flex items-center gap-3">
+
+        <div class="notification-menu" appDismissableMenu=".notification-menu__toggle">
+          <input id="tutor-notifications" class="notification-menu__toggle" type="checkbox">
+          <label for="tutor-notifications" class="app-nav__icon-btn" aria-label="View notifications">
+            <span class="app-nav__dot"></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" class="size-5">
+              <path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </label>
+          <div class="notification-menu__tray">
+            <div class="notification-menu__heading">
+              <span>Notifications</span>
+              <span class="notification-menu__status">{{ notifications.length }} new</span>
+            </div>
+              <div class="notification-menu__list">
+                <ng-container *ngFor="let notification of notifications">
+                  <a class="notification-menu__item" (click)="openNotification(notification)">
+                    <span class="notification-menu__item-dot"></span>
+                    <span>
+                      <strong>{{ notification.title }}</strong>
+                      <small>{{ notification.message }}</small>
+                      <time>{{ notification.created_at | date: 'shortTime' }}</time>
+                    </span>
+                  </a>
+                </ng-container>
+              </div>
+            <a routerLink="/tutor/notifications" class="notification-menu__item">View all notifications</a>
+            <!-- <a href="#" class="notification-menu__item"><span class="notification-menu__item-dot"></span><span><strong>New service request</strong><small>Jordan Lee requested a service with you.</small><time>8 min ago</time></span></a>
+            <a href="#" class="notification-menu__item"><span class="notification-menu__item-dot"></span><span><strong>New message</strong><small>Sam Rivera sent you a message.</small><time>26 min ago</time></span></a>
+            <a href="#" class="notification-menu__item"><span class="notification-menu__item-dot"></span><span><strong>New review</strong><small>A student left feedback on your profile.</small><time>Yesterday</time></span></a> -->
+            <label for="tutor-notifications" class="notification-menu__close" aria-label="Close notifications">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </label>
+          </div>
+        </div>
+
+        <div class="profile-menu relative">
+
+        <button (click)="showProfileMenu = !showProfileMenu" class="h-10 w-10 rounded-full overflow-hidden">
+
+          <img *ngIf="profileImage" [src]="profileImage" alt="Tutor profile" class="h-full w-full object-cover">
+          <span *ngIf="!profileImage" class="profile-fallback">{{ (loggedInUser?.full_name || 'T')[0] }}</span>
+        </button>
+
+        <div *ngIf="showProfileMenu"
+          class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200">
+
+          <a class="block px-4 py-3 hover:bg-slate-50 cursor-pointer" [routerLink]="['/tutor/my-profile']">
+            Profile
+          </a>
+
+          <!-- <a class="block px-4 py-3 hover:bg-slate-50 cursor-pointer">
+            Settings
+          </a> -->
+
+          <a class="block px-4 py-3 hover:bg-slate-50 cursor-pointer" (click)="logout()">
+            Logout
+          </a>
+
+        </div>
+
+      </div>
+
+      <button
+        type="button"
+        class="mobile-menu-toggle"
+        aria-label="Toggle navigation"
+        [attr.aria-expanded]="mobileMenuOpen"
+        (click)="$event.stopPropagation(); mobileMenuOpen = !mobileMenuOpen">
+        <i class="bi" [class.bi-list]="!mobileMenuOpen" [class.bi-x-lg]="mobileMenuOpen"></i>
+      </button>
+
+    </div>
+  </div>
+  </div>
+</nav>
+
+<div class="mobile-nav" *ngIf="mobileMenuOpen">
+  <a routerLink="/tutor/dashboard" routerLinkActive="mobile-nav__link--active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+  <a routerLink="/tutor/my-messages" routerLinkActive="mobile-nav__link--active">Messages <span class="nav-badge" *ngIf="unreadConversations > 0">{{ unreadConversations > 9 ? '9+' : unreadConversations }}</span></a>
+  <a routerLink="/tutor/my-profile" routerLinkActive="mobile-nav__link--active">Profile</a>
+</div>
+
+
+<router-outlet></router-outlet>

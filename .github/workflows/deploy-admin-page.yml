@@ -1,0 +1,432 @@
+name: Deploy SkillBridge Admin to AWS EC2
+
+on:
+  workflow_dispatch:
+    inputs:
+      setup_server:
+        description: "Install/configure Nginx and HTTPS for admin on EC2"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      deploy_branch:
+        description: "Branch or ref to deploy"
+        required: false
+        default: "main"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skillbridge-ec2-deployment
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+  EC2_USER: ubuntu
+  ADMIN_DEPLOY_PATH: /var/www/skillbridge/admin
+  SOURCE_DEPLOY_PATH: /opt/skillbridge-src
+  MAIN_DOMAIN: skillbridgeacademy.duckdns.org
+  ADMIN_DOMAIN: admin-skillbridgeacademy.duckdns.org
+
+  EC2_KEY_NAME: skillbridge-deploy-key
+  EC2_SECURITY_GROUP_NAME: skillbridge-web-sg
+  EC2_INSTANCE_NAME: skillbridge-about-page-server
+  EC2_INSTANCE_TYPE: t3.small
+
+  GITHUB_REPO_SSH_URL: git@github.com:${{ github.repository }}.git
+  SSH_OPTS: -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -o TCPKeepAlive=yes -o ConnectTimeout=30
+
+  EC2_SSH_PRIVATE_KEY: ${{ secrets.AWS_EC2_SSH_PRIVATE_KEY }}
+  EC2_SSH_PUBLIC_KEY: ${{ secrets.AWS_EC2_SSH_PUBLIC_KEY }}
+  GITHUB_DEPLOY_KEY: ${{ secrets.GH_DEPLOY_PRIVATE_KEY }}
+  LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
+
+jobs:
+  deploy:
+    name: Deploy admin app
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${EC2_SSH_PRIVATE_KEY}" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+
+      - name: Import EC2 key pair
+        run: |
+          if ! aws ec2 describe-key-pairs --key-names "${EC2_KEY_NAME}" >/dev/null 2>&1; then
+            echo "${EC2_SSH_PUBLIC_KEY}" > ec2_key.pub
+            aws ec2 import-key-pair \
+              --key-name "${EC2_KEY_NAME}" \
+              --public-key-material fileb://ec2_key.pub
+          fi
+
+      - name: Create security group
+        run: |
+          VPC_ID=$(aws ec2 describe-vpcs \
+            --filters "Name=isDefault,Values=true" \
+            --query "Vpcs[0].VpcId" \
+            --output text)
+
+          SG_ID=$(aws ec2 describe-security-groups \
+            --filters "Name=group-name,Values=${EC2_SECURITY_GROUP_NAME}" "Name=vpc-id,Values=${VPC_ID}" \
+            --query "SecurityGroups[0].GroupId" \
+            --output text)
+
+          if [ "${SG_ID}" = "None" ] || [ -z "${SG_ID}" ]; then
+            SG_ID=$(aws ec2 create-security-group \
+              --group-name "${EC2_SECURITY_GROUP_NAME}" \
+              --description "Security group for SkillBridge web server" \
+              --vpc-id "${VPC_ID}" \
+              --query "GroupId" \
+              --output text)
+          fi
+
+          for port in 22 80 443; do
+            aws ec2 authorize-security-group-ingress \
+              --group-id "${SG_ID}" \
+              --protocol tcp \
+              --port "${port}" \
+              --cidr 0.0.0.0/0 || true
+          done
+
+          echo "SG_ID=${SG_ID}" >> "$GITHUB_ENV"
+
+      - name: Find EC2 instance
+        run: |
+          echo "CREATED_INSTANCE=false" >> "$GITHUB_ENV"
+
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters \
+              "Name=tag:Name,Values=${EC2_INSTANCE_NAME}" \
+              "Name=instance-state-name,Values=pending,running,stopping,stopped" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+
+          if [ "${INSTANCE_ID}" = "None" ] || [ -z "${INSTANCE_ID}" ]; then
+            echo "INSTANCE_ID=" >> "$GITHUB_ENV"
+          else
+            echo "INSTANCE_ID=${INSTANCE_ID}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Get Ubuntu AMI
+        if: ${{ env.INSTANCE_ID == '' }}
+        run: |
+          AMI_ID=$(aws ec2 describe-images \
+            --owners 099720109477 \
+            --filters \
+              "Name=name,Values=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*" \
+              "Name=state,Values=available" \
+            --query "sort_by(Images, &CreationDate)[-1].ImageId" \
+            --output text)
+
+          echo "AMI_ID=${AMI_ID}" >> "$GITHUB_ENV"
+
+      - name: Create EC2 instance
+        if: ${{ env.INSTANCE_ID == '' }}
+        run: |
+          INSTANCE_ID=$(aws ec2 run-instances \
+            --image-id "${AMI_ID}" \
+            --instance-type "${EC2_INSTANCE_TYPE}" \
+            --key-name "${EC2_KEY_NAME}" \
+            --security-group-ids "${SG_ID}" \
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=${EC2_INSTANCE_NAME}}]" \
+            --query "Instances[0].InstanceId" \
+            --output text)
+
+          echo "INSTANCE_ID=${INSTANCE_ID}" >> "$GITHUB_ENV"
+          echo "CREATED_INSTANCE=true" >> "$GITHUB_ENV"
+
+      - name: Start and wait for EC2
+        run: |
+          STATE=$(aws ec2 describe-instances \
+            --instance-ids "${INSTANCE_ID}" \
+            --query "Reservations[0].Instances[0].State.Name" \
+            --output text)
+
+          if [ "${STATE}" = "stopped" ]; then
+            aws ec2 start-instances --instance-ids "${INSTANCE_ID}"
+          fi
+
+          aws ec2 wait instance-running --instance-ids "${INSTANCE_ID}"
+
+      - name: Ensure Elastic IP
+        run: |
+          EIP_NAME="${EC2_INSTANCE_NAME}-eip"
+
+          EIP_ALLOC_ID=$(aws ec2 describe-addresses \
+            --filters "Name=tag:Name,Values=${EIP_NAME}" \
+            --query "Addresses[0].AllocationId" \
+            --output text)
+
+          if [ "${EIP_ALLOC_ID}" = "None" ] || [ -z "${EIP_ALLOC_ID}" ]; then
+            EIP_ALLOC_ID=$(aws ec2 allocate-address \
+              --domain vpc \
+              --query "AllocationId" \
+              --output text)
+
+            aws ec2 create-tags \
+              --resources "${EIP_ALLOC_ID}" \
+              --tags "Key=Name,Value=${EIP_NAME}"
+          fi
+
+          aws ec2 associate-address \
+            --instance-id "${INSTANCE_ID}" \
+            --allocation-id "${EIP_ALLOC_ID}" \
+            --allow-reassociation >/dev/null
+
+          EC2_HOST=$(aws ec2 describe-addresses \
+            --allocation-ids "${EIP_ALLOC_ID}" \
+            --query "Addresses[0].PublicIp" \
+            --output text)
+
+          echo "EC2_HOST=${EC2_HOST}" >> "$GITHUB_ENV"
+
+      - name: Point admin DuckDNS domain to EC2
+        env:
+          DUCKDNS_TOKEN: ${{ secrets.ADMIN_DUCKDNS_TOKEN }}
+        run: |
+          if [ -z "${DUCKDNS_TOKEN}" ]; then
+            echo "GitHub secret ADMIN_DUCKDNS_TOKEN is required."
+            exit 1
+          fi
+
+          ADMIN_SUBDOMAIN="${ADMIN_DOMAIN%.duckdns.org}"
+          UPDATE_RESULT=$(curl --silent --show-error --fail --get \
+            --data-urlencode "domains=${ADMIN_SUBDOMAIN}" \
+            --data-urlencode "token=${DUCKDNS_TOKEN}" \
+            --data-urlencode "ip=${EC2_HOST}" \
+            https://www.duckdns.org/update)
+
+          if [ "${UPDATE_RESULT}" != "OK" ]; then
+            echo "DuckDNS update failed for ${ADMIN_DOMAIN}."
+            exit 1
+          fi
+
+          for i in {1..30}; do
+            RESOLVED_IP=$(getent ahostsv4 "${ADMIN_DOMAIN}" | awk 'NR == 1 { print $1 }')
+            if [ "${RESOLVED_IP}" = "${EC2_HOST}" ]; then
+              echo "${ADMIN_DOMAIN} resolves to ${EC2_HOST}."
+              exit 0
+            fi
+
+            echo "Waiting for DuckDNS propagation... attempt ${i}/30"
+            sleep 10
+          done
+
+          echo "${ADMIN_DOMAIN} did not resolve to ${EC2_HOST} in time."
+          exit 1
+
+      - name: Wait for SSH
+        run: |
+          mkdir -p ~/.ssh
+
+          for i in {1..45}; do
+            if ssh-keyscan -T 5 -H "${EC2_HOST}" >> ~/.ssh/known_hosts 2>/dev/null; then
+              echo "SSH is ready."
+              exit 0
+            fi
+
+            echo "Waiting for SSH... attempt ${i}/45"
+            sleep 10
+          done
+
+          echo "SSH did not become ready."
+          exit 1
+
+      - name: Setup admin server
+        if: ${{ inputs.setup_server == 'true' || env.CREATED_INSTANCE == 'true' }}
+        run: |
+          ssh -i ~/.ssh/ec2_key ${SSH_OPTS} "${EC2_USER}@${EC2_HOST}" \
+            "ADMIN_DEPLOY_PATH='${ADMIN_DEPLOY_PATH}' ADMIN_DOMAIN='${ADMIN_DOMAIN}' MAIN_DOMAIN='${MAIN_DOMAIN}' LETSENCRYPT_EMAIL='${LETSENCRYPT_EMAIL}' bash -s" << 'REMOTE_EOF'
+          set -e
+
+          sudo apt-get update
+          sudo apt-get install -y nginx git nodejs npm rsync certbot
+          sudo mkdir -p "${ADMIN_DEPLOY_PATH}"
+
+          sudo tee /etc/nginx/sites-available/skillbridge-admin > /dev/null << NGINX_ADMIN
+          server {
+              listen 80;
+              server_name ${ADMIN_DOMAIN};
+
+              root ${ADMIN_DEPLOY_PATH};
+              index index.html;
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+          }
+          NGINX_ADMIN
+
+          sudo ln -sf /etc/nginx/sites-available/skillbridge-admin /etc/nginx/sites-enabled/skillbridge-admin
+          sudo rm -f /etc/nginx/sites-enabled/default
+          sudo nginx -t
+          sudo systemctl enable nginx
+          sudo systemctl restart nginx
+
+          sudo certbot certonly \
+            --webroot \
+            --webroot-path "${ADMIN_DEPLOY_PATH}" \
+            --domains "${ADMIN_DOMAIN}" \
+            --non-interactive \
+            --agree-tos \
+            --email "${LETSENCRYPT_EMAIL}"
+
+          sudo tee /etc/nginx/sites-available/skillbridge-admin > /dev/null << NGINX_ADMIN_SSL
+          server {
+              listen 80;
+              server_name ${ADMIN_DOMAIN};
+              return 301 https://\$host\$request_uri;
+          }
+
+          server {
+              listen 443 ssl;
+              server_name ${ADMIN_DOMAIN};
+
+              root ${ADMIN_DEPLOY_PATH};
+              index index.html;
+
+              ssl_certificate /etc/letsencrypt/live/${ADMIN_DOMAIN}/fullchain.pem;
+              ssl_certificate_key /etc/letsencrypt/live/${ADMIN_DOMAIN}/privkey.pem;
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+          }
+          NGINX_ADMIN_SSL
+
+          sudo nginx -t
+          sudo systemctl reload nginx
+          REMOTE_EOF
+
+      - name: Deploy admin app
+        run: |
+          GITHUB_DEPLOY_KEY_B64=""
+          if [ -n "${GITHUB_DEPLOY_KEY}" ]; then
+            GITHUB_DEPLOY_KEY_B64=$(printf '%s\n' "${GITHUB_DEPLOY_KEY}" | base64 -w 0)
+          fi
+
+          ssh -i ~/.ssh/ec2_key ${SSH_OPTS} "${EC2_USER}@${EC2_HOST}" \
+            "ADMIN_DEPLOY_PATH='${ADMIN_DEPLOY_PATH}' SOURCE_DEPLOY_PATH='${SOURCE_DEPLOY_PATH}' GITHUB_REPO_SSH_URL='${GITHUB_REPO_SSH_URL}' DEPLOY_REF='${{ inputs.deploy_branch }}' GITHUB_DEPLOY_KEY_B64='${GITHUB_DEPLOY_KEY_B64}' EC2_USER='${EC2_USER}' bash -s" << 'REMOTE_EOF'
+          set -e
+
+          sudo apt-get update
+          sudo apt-get install -y git nodejs npm rsync
+
+          if [ ! -f /swapfile ]; then
+            sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
+            sudo chmod 600 /swapfile
+            sudo mkswap /swapfile
+          fi
+
+          if ! swapon --show=NAME | grep -q '^/swapfile$'; then
+            sudo swapon /swapfile
+          fi
+
+          mkdir -p "${HOME}/.ssh"
+          chmod 700 "${HOME}/.ssh"
+          ssh-keyscan -H github.com >> "${HOME}/.ssh/known_hosts" 2>/dev/null || true
+
+          if [ -n "${GITHUB_DEPLOY_KEY_B64}" ]; then
+            printf '%s' "${GITHUB_DEPLOY_KEY_B64}" | base64 -d > "${HOME}/.ssh/github_deploy_key"
+            chmod 600 "${HOME}/.ssh/github_deploy_key"
+
+            printf '%s\n' \
+              "Host github.com" \
+              "  HostName github.com" \
+              "  User git" \
+              "  IdentityFile ${HOME}/.ssh/github_deploy_key" \
+              "  IdentitiesOnly yes" \
+              > "${HOME}/.ssh/config"
+
+            chmod 600 "${HOME}/.ssh/config"
+            export GIT_SSH_COMMAND="ssh -i ${HOME}/.ssh/github_deploy_key -o IdentitiesOnly=yes"
+          fi
+
+          if [ ! -d "${SOURCE_DEPLOY_PATH}/.git" ]; then
+            sudo rm -rf "${SOURCE_DEPLOY_PATH}"
+            sudo mkdir -p "${SOURCE_DEPLOY_PATH}"
+            sudo chown -R "${EC2_USER}:${EC2_USER}" "${SOURCE_DEPLOY_PATH}"
+            git clone "${GITHUB_REPO_SSH_URL}" "${SOURCE_DEPLOY_PATH}"
+          fi
+
+          cd "${SOURCE_DEPLOY_PATH}"
+          git remote set-url origin "${GITHUB_REPO_SSH_URL}"
+
+          if [ -f "${HOME}/.ssh/github_deploy_key" ]; then
+            git config core.sshCommand "ssh -i ${HOME}/.ssh/github_deploy_key -o IdentitiesOnly=yes"
+          fi
+
+          if printf '%s\n' "${DEPLOY_REF}" | grep -q '^refs/heads/'; then
+            DEPLOY_BRANCH="${DEPLOY_REF#refs/heads/}"
+            git fetch origin "${DEPLOY_BRANCH}"
+            git checkout -B "${DEPLOY_BRANCH}" "origin/${DEPLOY_BRANCH}"
+          else
+            if git ls-remote --exit-code --heads origin "${DEPLOY_REF}" >/dev/null 2>&1; then
+              git fetch origin "${DEPLOY_REF}"
+              git checkout -B "${DEPLOY_REF}" "origin/${DEPLOY_REF}"
+            else
+              git fetch origin "${DEPLOY_REF}"
+              git checkout FETCH_HEAD
+            fi
+          fi
+
+          cd "${SOURCE_DEPLOY_PATH}/skillbridge-admin"
+          npm ci --no-audit --no-fund
+          NODE_OPTIONS="--max-old-space-size=1536" npm run build -- --base-href / --progress=false
+
+          ADMIN_DIST="${SOURCE_DEPLOY_PATH}/skillbridge-admin/dist/skillbridge-admin"
+          if [ -d "${ADMIN_DIST}/browser" ]; then
+            ADMIN_DIST="${ADMIN_DIST}/browser"
+          fi
+
+          sudo mkdir -p "${ADMIN_DEPLOY_PATH}"
+          sudo rm -rf "${ADMIN_DEPLOY_PATH:?}"/*
+          sudo cp -r "${ADMIN_DIST}/." "${ADMIN_DEPLOY_PATH}/"
+          sudo chown -R www-data:www-data "${ADMIN_DEPLOY_PATH}"
+
+          rm -rf "${SOURCE_DEPLOY_PATH}/skillbridge-admin/node_modules"
+
+          sudo nginx -t
+          sudo systemctl reload nginx
+          REMOTE_EOF
+
+      - name: Verify admin domain
+        run: |
+          curl --fail --silent --show-error \
+            --retry 12 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            "https://${ADMIN_DOMAIN}/" | grep -q '<title>SkillbridgeAdmin</title>'
+
+          CORS_HEADERS=$(curl --fail --silent --show-error \
+            --request OPTIONS \
+            --header "Origin: https://${ADMIN_DOMAIN}" \
+            --header "Access-Control-Request-Method: POST" \
+            --header "Access-Control-Request-Headers: content-type,authorization" \
+            --dump-header - \
+            --output /dev/null \
+            "https://${MAIN_DOMAIN}/api/v1/user/login/")
+
+          printf '%s\n' "${CORS_HEADERS}" | tr -d '\r' | \
+            grep -Fqi "access-control-allow-origin: https://${ADMIN_DOMAIN}"
+
+      - name: Print URLs
+        run: |
+          echo "Admin domain: https://${ADMIN_DOMAIN}"
+          echo "Main website domain: https://${MAIN_DOMAIN}"
+          echo "EC2 Instance ID: ${INSTANCE_ID}"

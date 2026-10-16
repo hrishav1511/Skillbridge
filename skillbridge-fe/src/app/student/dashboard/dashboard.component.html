@@ -1,0 +1,364 @@
+<main class="student-dashboard">
+  <div class="dashboard-container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="hero__left">
+        <span class="hero__badge">Student workspace</span>
+        <h2 class="hero__title">Welcome back, {{ loggedInUser.full_name ?? 'Guest' }}</h2>
+        <p class="hero__subtitle">Find the right tutor, manage your services, and keep learning moving.</p>
+        <div class="hero__actions">
+          <button type="button" class="hero__cta" (click)="selectedListType('Tutor')">Browse tutors</button>
+          <button type="button" class="hero__cta hero__cta--ghost" (click)="selectedListType('Service')">Explore
+            services</button>
+        </div>
+      </div>
+      <!-- <div class="hero__right">
+        <div class="hero-stat">
+          <span class="hero-stat__value">24</span>
+          <span class="hero-stat__label">Tutors</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat__value">12</span>
+          <span class="hero-stat__label">Services</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat__value">24h</span>
+          <span class="hero-stat__label">Learning</span>
+        </div>
+      </div> -->
+    </section>
+
+    <!-- ============ STATS ============ -->
+    <section class="stats-grid">
+      <article class="stat-card">
+        <div class="stat-card__top">
+          <span class="stat-card__icon stat-card__icon--indigo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="17" rx="2" />
+              <path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="stat-chip stat-chip--neutral">TRACKING</span>
+        </div>
+        <span class="stat-card__value">{{DashbopardData.total_upcoming_services || 0 }}</span>
+        <span class="stat-card__label">Upcoming services</span>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-card__top">
+          <span class="stat-card__icon stat-card__icon--green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+              <path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.1a7.5 7.5 0 0 1 15 0"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span class="stat-chip stat-chip--neutral">LIVE</span>
+        </div>
+        <span class="stat-card__value">{{DashbopardData.total_available_tutors || 0 }}</span>
+        <span class="stat-card__label">Available tutors</span>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-card__top">
+          <span class="stat-card__icon stat-card__icon--amber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3 2" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="stat-chip stat-chip--neutral">NEW</span>
+        </div>
+        <span class="stat-card__value">{{DashbopardData.tutors_in_current_month || 0 }}</span>
+        <span class="stat-card__label">New Tutors</span>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-card__top">
+          <span class="stat-card__icon stat-card__icon--blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+              <path d="M3 17l5-5 4 4 8-8" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M16 8h4v4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span class="stat-chip stat-chip--neutral">MONTHLY</span>
+        </div>
+        <span class="stat-card__value">{{DashbopardData.services_in_current_month || 0 }}</span>
+        <span class="stat-card__label">Services this month</span>
+      </article>
+    </section>
+
+    <!-- ============ MAIN LAYOUT ============ -->
+    <div class="dashboard-layout">
+      <!-- LEFT -->
+      <section class="dashboard-main">
+        <div class="section-header">
+          <div>
+            <p class="section-header__tag">Discover</p>
+            <h3 class="section-header__title">Find your next service</h3>
+            <p class="section-header__description">Compare tutors and live services, then save the ones worth returning to.</p>
+          </div>
+
+          <div class="switcher">
+            <button class="switcher__btn" [ngClass]="selectedlistype === 'Tutor' ? 'is-active' : ''"
+              (click)="selectedListType('Tutor')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="size-5"
+                aria-hidden="true">
+                <path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.1a7.5 7.5 0 0 1 15 0"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              Tutors
+            </button>
+            <button class="switcher__btn" [ngClass]="selectedlistype === 'Service' ? 'is-active' : ''"
+              (click)="selectedListType('Service')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="size-5"
+                aria-hidden="true">
+                <path
+                  d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0 1 16.5 7.605"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              Services
+            </button>
+          </div>
+        </div>
+
+        <!-- <div class="embed-surface"> -->
+        <ng-container *ngIf="selectedlistype === 'Tutor'">
+          <app-tutor-list></app-tutor-list>
+        </ng-container>
+        <ng-container *ngIf="selectedlistype === 'Service'">
+          <app-service-list></app-service-list>
+        </ng-container>
+        <!-- </div> -->
+
+        <section class="favorites-panel" *ngIf="this.loggedInUser['role'] !== 'guest'">
+          <div class="favorites-panel__header">
+            <div>
+              <p class="section-header__tag">Your picks</p>
+              <h3 class="favorites-panel__title">Favourites</h3>
+            </div>
+            <div class="favorites-switcher" role="tablist" aria-label="Favourite type">
+              <button type="button" [class.is-active]="selectedFavoriteType === 'Tutor'" (click)="selectFavoriteType('Tutor')">Tutors</button>
+              <button type="button" [class.is-active]="selectedFavoriteType === 'Service'" (click)="selectFavoriteType('Service')">Services</button>
+            </div>
+          </div>
+
+          <div class="favorites-empty" *ngIf="favoritesLoading">
+            <p>Loading favourites...</p>
+          </div>
+
+          <div class="favorites-empty" *ngIf="!favoritesLoading && !selectedFavorites.length">
+            <span class="favorites-empty__icon" aria-hidden="true">☆</span>
+            <p>No favourite {{ selectedFavoriteType === 'Tutor' ? 'tutors' : 'services' }} yet</p>
+            <span>Use the star on a {{ selectedFavoriteType === 'Tutor' ? 'tutor' : 'service' }} to save it here.</span>
+          </div>
+
+          <div class="favorites-list" *ngIf="!favoritesLoading && selectedFavorites.length">
+            <article class="favorite-item" *ngFor="let favorite of selectedFavorites" (click)="openFavorite(favorite)">
+              <div class="favorite-item__avatar">
+                <img *ngIf="favorite.imageUrl" [src]="favorite.imageUrl" [alt]="favorite.title">
+                <span *ngIf="!favorite.imageUrl">{{ favorite.title.slice(0, 1).toUpperCase() }}</span>
+              </div>
+              <div class="favorite-item__body">
+                <strong>{{ favorite.title }}</strong>
+                <span>{{ favorite.subtitle }}</span>
+                <small *ngIf="favorite.metadata">{{ favorite.metadata }}</small>
+              </div>
+              <button type="button" class="favorite-item__remove" (click)="$event.stopPropagation(); removeFavorite(favorite)" [attr.aria-label]="'Remove ' + favorite.title + ' from favourites'">×</button>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <!-- RIGHT -->
+      <aside class="dashboard-sidebar">
+        <!-- PROGRESS RING -->
+        <div class="panel">
+          <div class="panel__header">
+            <div>
+              <p class="panel__label">Your schedule</p>
+              <h3 class="panel__title">Booked Services</h3>
+            </div>
+          </div>
+          <!-- <div class="progress-ring">
+              <div class="progress-ring__chart" style="--value: 87">
+                <div class="progress-ring__center">
+                  <span class="progress-ring__value">87%</span>
+                  <span class="progress-ring__caption">complete</span>
+                </div>
+              </div>
+              <ul class="progress-legend">
+                <li><span class="dot dot--indigo"></span> Completed <strong>9</strong></li>
+                <li><span class="dot dot--track"></span> Remaining <strong>3</strong></li>
+              </ul>
+            </div> -->
+
+
+               <ng-container *ngFor="let item of booked_service_list">
+              <div class="service-card" role="button" tabindex="0"
+                (click)="openBookedService(item)"
+                (keydown.enter)="openBookedService(item)"
+                [attr.aria-label]="'Open booked service ' + item.service.service_name">
+                <div class="service-card__avatar">
+                  <span>{{ getInitials(item.tutor.user.full_name) }}</span>
+                </div>
+                <div class="service-card__details">
+                  <div class="service-card__row">
+                    <p class="service-card__name">{{item.service.service_name}}</p>
+                    <span class="status" [class.status--ended]="isServiceEnded(item)">
+                      {{ isServiceEnded(item) ? 'Ended' : item.service.level }}
+                    </span>
+                  </div>
+                  <p class="service-card__meta">{{item.tutor.user.full_name}} • {{item.service.date | date: 'MMM dd'}}, {{formatTime(item.service.time)}}</p>
+                  <div class="service-card__row service-card__row--bottom"></div>
+                </div>
+              </div>
+              </ng-container>
+              <ng-container *ngIf="!booked_service_list?.length && this.loggedInUser['role'] !==  'guest'">
+                <span class="note">Yoy dont have any booked services</span>
+              </ng-container>
+              <span class="note" *ngIf="this.loggedInUser['role'] ===  'guest'">Please log in to start learning</span>
+
+        </div>
+
+
+        <!-- CALENDAR -->
+        <div class="panel">
+          <div class="panel__header">
+            <div>
+              <p class="panel__label">Calendar</p>
+              <h3 class="panel__title">{{ currentMonth }} {{ currentYear }}</h3>
+            </div>
+            <div class="calendar-nav">
+              <button type="button" class="calendar-nav__btn" (click)="previousMonth()" aria-label="Previous month">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button type="button" class="calendar-nav__btn" (click)="nextMonth()" aria-label="Next month">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+              <button type="button" class="calendar-nav__today" (click)="goToToday()" [disabled]="isViewingCurrentMonth">
+                Today
+              </button>
+            </div>
+          </div>
+          <div class="calendar-grid">
+            <div *ngFor="let day of weekDays" class="calendar-weekday">{{ day }}</div>
+            <ng-container *ngFor="let row of calendarWeeks">
+              <ng-container *ngFor="let cell of row">
+                <!-- <div class="calendar-cell" (click)="daydetails(cell)" [class.calendar-cell--today]="cell.isToday" [class.calendar-cell--booked]="cell.bookings?.length">
+                  <span *ngIf="cell.day">{{ cell.day }}</span>
+                </div> -->
+                <div
+  class="calendar-cell"
+  (click)="daydetails(cell)"
+  [class.calendar-cell--today]="cell.isToday"
+  [class.calendar-cell--booked]="cell.bookings?.length"
+  [class.calendar-cell--idle]="cell.day && !cell.bookings?.length"
+  [class.calendar-cell--empty]="!cell.day"
+>
+  <span *ngIf="cell.day">
+    {{ cell.day }}
+  </span>
+
+  <!-- Hover details -->
+  <div
+    *ngIf="cell.bookings?.length"
+    class="calendar-tooltip"
+  >
+    <div class="calendar-tooltip__date">
+      {{ cell.day }} {{ currentMonth }} {{ currentYear }}
+    </div>
+
+    <div
+      *ngFor="let booking of cell.bookings"
+      class="calendar-tooltip__service"
+    >
+      <div class="calendar-tooltip__name">
+        {{ booking.service?.service_name }}
+      </div>
+
+      <div class="calendar-tooltip__info">
+        <span>
+          {{ booking.service?.time | slice:0:5 }}
+        </span>
+
+        <span>
+          €{{ booking.service?.price }}
+        </span>
+      </div>
+
+      <div class="calendar-tooltip__tutor">
+        Tutor: {{ booking.tutor?.user?.full_name }}
+      </div>
+    </div>
+  </div>
+</div>
+              </ng-container>
+            </ng-container>
+          </div>
+        </div>
+
+        <!-- CHATS -->
+        <div class="panel">
+          <div class="panel__header">
+            <div>
+              <p class="panel__label">Messages</p>
+              <h3 class="panel__title">Recent chats</h3>
+            </div>
+          </div>
+
+          <div class="chat-list">
+            <div class="chat-item" (click)="openChatfromList(item)" *ngFor="let item of chatlist">
+              <div class="chat-avatar">{{getInitials(item.members[0].full_name)}}</div>
+              <div class="chat-content">
+                <div class="chat-header">
+                  <span class="chat-name">{{item.members[0].full_name}}</span>
+                  <span class="chat-time">{{ item.last_message.created_at | date:'shortTime' }}</span>
+                </div>
+                <div class="chat-preview">
+                  {{item.last_message.content}}
+                </div>
+              </div>
+            </div>
+            <span class="note" *ngIf="this.loggedInUser['role'] ===  'guest'">Please create an account or login to
+              access chat features.</span>
+              <span class="note" *ngIf="this.loggedInUser['role'] !==  'guest' && this.chatlist.length === 0">There are no conversations currently</span>
+            <!-- <div class="chat-item">
+                <div class="chat-avatar chat-avatar--b">EB</div>
+                <div class="chat-content">
+                  <div class="chat-header">
+                    <span class="chat-name">Emily Butler</span>
+                    <span class="chat-time">1h</span>
+                  </div>
+                  <div class="chat-preview">
+                    I&apos;ve uploaded the assignment notes.
+                  </div>
+                </div>
+              </div>
+
+              <div class="chat-item">
+                <div class="chat-avatar chat-avatar--c">MS</div>
+                <div class="chat-content">
+                  <div class="chat-header">
+                    <span class="chat-name">Michael Smith</span>
+                    <span class="chat-time">Yesterday</span>
+                  </div>
+                  <div class="chat-preview">
+                    Great progress this week!
+                  </div>
+                </div>
+              </div> -->
+          </div>
+
+          <div class="panel__footer">
+            <button class="see-more-btn" *ngIf="chatlist.length > 0" (click)="gotohats()">
+              See More
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>

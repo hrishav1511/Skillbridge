@@ -1,0 +1,121 @@
+<div class="min-h-full app-shell">
+  <div class="chat-list">
+  <header class="chat-list__header">
+    <div class="chat-list__heading">
+      <h1 class="chat-list__title">Messages</h1>
+      <p class="chat-list__subtitle">Your conversations with students</p>
+    </div>
+
+    <span class="chat-list__count">
+      {{ filteredRooms.length }}
+      {{ filteredRooms.length === 1 ? 'chat' : 'chats' }}
+    </span>
+  </header>
+
+  <div class="chat-list__search">
+    <svg class="chat-list__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.8" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" stroke-linecap="round" />
+    </svg>
+    <input
+      type="text"
+      class="chat-list__search-input"
+      placeholder="Search conversations"
+      (ngModelChange)="onSearch($event)"
+      aria-label="Search conversations" />
+    <button
+      *ngIf="searchTerm"
+      type="button"
+      class="chat-list__search-clear"
+      (click)="clearSearch()"
+      aria-label="Clear search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round" />
+      </svg>
+    </button>
+  </div>
+
+  <ul class="chat-list__items" *ngIf="loading" aria-hidden="true">
+    <li class="chat-row chat-row--skeleton" *ngFor="let s of skeletons">
+      <div class="chat-row__avatar skeleton-block"></div>
+      <div class="chat-row__body">
+        <div class="skeleton-line skeleton-line--lg"></div>
+        <div class="skeleton-line skeleton-line--sm"></div>
+      </div>
+    </li>
+  </ul>
+
+  <div *ngIf="!loading && (!chatlist || chatlist.length === 0)" class="chat-list__state" role="status">
+    <div class="chat-list__state-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-linecap="round" stroke-linejoin="round" />
+        <rect x="7" y="3" width="10" height="8" rx="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div>
+    <h3 class="chat-list__state-title">No conversations yet</h3>
+    <p class="chat-list__state-text">You don't have any messages yet. Your conversations with students will appear here.</p>
+    <button class="chat-list__state-btn" (click)="goToDiscovery()">To my Profile</button>
+  </div>
+
+  <ul class="chat-list__items" *ngIf="!loading && chatlist && chatlist.length > 0">
+
+    <li
+      *ngFor="let item of chatlist"
+      class="chat-row"
+      [class.chat-row--unread]="item.last_message"
+      (click)="openChatfromList(item)"
+    >
+
+  <div class="chat-row__avatar" [style.background]="avatarColor(item.members[0].full_name)">
+    <span>
+      {{ item.members[0].full_name.split(' ')[0][0] }}{{ item.members[0].full_name.split(' ').length > 1 ? item.members[0].full_name.split(' ')[1][0] : '' }}
+    </span>
+
+    <span class="chat-row__presence"></span>
+  </div>
+
+  <div class="chat-row__body">
+
+    <div class="chat-row__top">
+      <span class="chat-row__name">
+        {{ item.members[0].full_name }}
+      </span>
+
+      <span class="chat-row__time" *ngIf="item.last_message">
+        {{ item.last_message.created_at | date:'shortTime' }}
+      </span>
+    </div>
+
+    <div class="chat-row__bottom">
+      <p class="chat-row__preview">
+        {{ item.last_message?.content || 'No messages yet' }}
+      </p>
+
+      <span
+        class="chat-row__badge"
+        *ngIf="item.last_message">
+      </span>
+    </div>
+
+  </div>
+
+  <svg
+    class="chat-row__chevron"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2">
+
+    <path
+      d="m9 6 6 6-6 6"
+      stroke-linecap="round"
+      stroke-linejoin="round">
+    </path>
+
+  </svg>
+
+</li>
+</ul>
+  </div>
+</div>

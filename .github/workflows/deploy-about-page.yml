@@ -1,0 +1,572 @@
+name: Deploy SkillBridge Main to AWS EC2
+
+on:
+  workflow_dispatch:
+    inputs:
+      setup_server:
+        description: "Install/configure Nginx, Docker, and HTTPS on EC2"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      frontend_ref:
+        description: "Frontend branch, tag, or commit SHA"
+        required: true
+        default: "main"
+        type: string
+      backend_ref:
+        description: "Backend branch, tag, or commit SHA"
+        required: true
+        default: "main"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skillbridge-ec2-deployment
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+  EC2_USER: ubuntu
+  EC2_DEPLOY_PATH: /var/www/skillbridge
+  MAIN_DEPLOY_PATH: /var/www/skillbridge/main
+  BACKEND_DEPLOY_PATH: /opt/skillbridge-be
+  BACKEND_SOURCE_DEPLOY_PATH: /opt/skillbridge-src
+  FRONTEND_SOURCE_DEPLOY_PATH: /opt/skillbridge-fe-src
+  MAIN_DOMAIN: skillbridgeacademy.duckdns.org
+  ADMIN_DOMAIN: admin-skillbridgeacademy.duckdns.org
+
+  EC2_KEY_NAME: skillbridge-deploy-key
+  EC2_SECURITY_GROUP_NAME: skillbridge-web-sg
+  EC2_INSTANCE_NAME: skillbridge-about-page-server
+  EC2_INSTANCE_TYPE: t3.small
+
+  GITHUB_REPO_SSH_URL: git@github.com:${{ github.repository }}.git
+  SSH_OPTS: -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -o TCPKeepAlive=yes -o ConnectTimeout=30
+
+  EC2_SSH_PRIVATE_KEY: ${{ secrets.AWS_EC2_SSH_PRIVATE_KEY }}
+  EC2_SSH_PUBLIC_KEY: ${{ secrets.AWS_EC2_SSH_PUBLIC_KEY }}
+  GITHUB_DEPLOY_KEY: ${{ secrets.GH_DEPLOY_PRIVATE_KEY }}
+  LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
+  BACKEND_ENV_FILE: ${{ secrets.BACKEND_ENV_FILE }}
+
+jobs:
+  deploy:
+    name: Deploy main app
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${EC2_SSH_PRIVATE_KEY}" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+
+      - name: Import EC2 key pair
+        run: |
+          if ! aws ec2 describe-key-pairs --key-names "${EC2_KEY_NAME}" >/dev/null 2>&1; then
+            echo "${EC2_SSH_PUBLIC_KEY}" > ec2_key.pub
+            aws ec2 import-key-pair \
+              --key-name "${EC2_KEY_NAME}" \
+              --public-key-material fileb://ec2_key.pub
+          fi
+
+      - name: Create security group
+        run: |
+          VPC_ID=$(aws ec2 describe-vpcs \
+            --filters "Name=isDefault,Values=true" \
+            --query "Vpcs[0].VpcId" \
+            --output text)
+
+          SG_ID=$(aws ec2 describe-security-groups \
+            --filters "Name=group-name,Values=${EC2_SECURITY_GROUP_NAME}" "Name=vpc-id,Values=${VPC_ID}" \
+            --query "SecurityGroups[0].GroupId" \
+            --output text)
+
+          if [ "${SG_ID}" = "None" ] || [ -z "${SG_ID}" ]; then
+            SG_ID=$(aws ec2 create-security-group \
+              --group-name "${EC2_SECURITY_GROUP_NAME}" \
+              --description "Security group for SkillBridge web server" \
+              --vpc-id "${VPC_ID}" \
+              --query "GroupId" \
+              --output text)
+          fi
+
+          for port in 22 80 443; do
+            aws ec2 authorize-security-group-ingress \
+              --group-id "${SG_ID}" \
+              --protocol tcp \
+              --port "${port}" \
+              --cidr 0.0.0.0/0 || true
+          done
+
+          echo "SG_ID=${SG_ID}" >> "$GITHUB_ENV"
+
+      - name: Find EC2 instance
+        run: |
+          echo "CREATED_INSTANCE=false" >> "$GITHUB_ENV"
+
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters \
+              "Name=tag:Name,Values=${EC2_INSTANCE_NAME}" \
+              "Name=instance-state-name,Values=pending,running,stopping,stopped" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+
+          if [ "${INSTANCE_ID}" = "None" ] || [ -z "${INSTANCE_ID}" ]; then
+            echo "INSTANCE_ID=" >> "$GITHUB_ENV"
+          else
+            echo "INSTANCE_ID=${INSTANCE_ID}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Get Ubuntu AMI
+        if: ${{ env.INSTANCE_ID == '' }}
+        run: |
+          AMI_ID=$(aws ec2 describe-images \
+            --owners 099720109477 \
+            --filters \
+              "Name=name,Values=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*" \
+              "Name=state,Values=available" \
+            --query "sort_by(Images, &CreationDate)[-1].ImageId" \
+            --output text)
+
+          echo "AMI_ID=${AMI_ID}" >> "$GITHUB_ENV"
+
+      - name: Create EC2 instance
+        if: ${{ env.INSTANCE_ID == '' }}
+        run: |
+          INSTANCE_ID=$(aws ec2 run-instances \
+            --image-id "${AMI_ID}" \
+            --instance-type "${EC2_INSTANCE_TYPE}" \
+            --key-name "${EC2_KEY_NAME}" \
+            --security-group-ids "${SG_ID}" \
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=${EC2_INSTANCE_NAME}}]" \
+            --query "Instances[0].InstanceId" \
+            --output text)
+
+          echo "INSTANCE_ID=${INSTANCE_ID}" >> "$GITHUB_ENV"
+          echo "CREATED_INSTANCE=true" >> "$GITHUB_ENV"
+
+      - name: Start and wait for EC2
+        run: |
+          STATE=$(aws ec2 describe-instances \
+            --instance-ids "${INSTANCE_ID}" \
+            --query "Reservations[0].Instances[0].State.Name" \
+            --output text)
+
+          if [ "${STATE}" = "stopped" ]; then
+            aws ec2 start-instances --instance-ids "${INSTANCE_ID}"
+          fi
+
+          aws ec2 wait instance-running --instance-ids "${INSTANCE_ID}"
+
+      - name: Ensure Elastic IP
+        run: |
+          EIP_NAME="${EC2_INSTANCE_NAME}-eip"
+
+          EIP_ALLOC_ID=$(aws ec2 describe-addresses \
+            --filters "Name=tag:Name,Values=${EIP_NAME}" \
+            --query "Addresses[0].AllocationId" \
+            --output text)
+
+          if [ "${EIP_ALLOC_ID}" = "None" ] || [ -z "${EIP_ALLOC_ID}" ]; then
+            EIP_ALLOC_ID=$(aws ec2 allocate-address \
+              --domain vpc \
+              --query "AllocationId" \
+              --output text)
+
+            aws ec2 create-tags \
+              --resources "${EIP_ALLOC_ID}" \
+              --tags "Key=Name,Value=${EIP_NAME}"
+          fi
+
+          aws ec2 associate-address \
+            --instance-id "${INSTANCE_ID}" \
+            --allocation-id "${EIP_ALLOC_ID}" \
+            --allow-reassociation >/dev/null
+
+          EC2_HOST=$(aws ec2 describe-addresses \
+            --allocation-ids "${EIP_ALLOC_ID}" \
+            --query "Addresses[0].PublicIp" \
+            --output text)
+
+          echo "EC2_HOST=${EC2_HOST}" >> "$GITHUB_ENV"
+
+      - name: Point main DuckDNS domain to EC2
+        env:
+          DUCKDNS_TOKEN: ${{ secrets.MAIN_DUCKDNS_TOKEN }}
+        run: |
+          if [ -z "${DUCKDNS_TOKEN}" ]; then
+            echo "GitHub secret MAIN_DUCKDNS_TOKEN is required."
+            exit 1
+          fi
+
+          MAIN_SUBDOMAIN="${MAIN_DOMAIN%.duckdns.org}"
+          UPDATE_RESULT=$(curl --silent --show-error --fail --get \
+            --data-urlencode "domains=${MAIN_SUBDOMAIN}" \
+            --data-urlencode "token=${DUCKDNS_TOKEN}" \
+            --data-urlencode "ip=${EC2_HOST}" \
+            https://www.duckdns.org/update)
+
+          if [ "${UPDATE_RESULT}" != "OK" ]; then
+            echo "DuckDNS update failed for ${MAIN_DOMAIN}."
+            exit 1
+          fi
+
+          for i in {1..30}; do
+            RESOLVED_IP=$(getent ahostsv4 "${MAIN_DOMAIN}" | awk 'NR == 1 { print $1 }')
+            if [ "${RESOLVED_IP}" = "${EC2_HOST}" ]; then
+              echo "${MAIN_DOMAIN} resolves to ${EC2_HOST}."
+              exit 0
+            fi
+
+            echo "Waiting for DuckDNS propagation... attempt ${i}/30"
+            sleep 10
+          done
+
+          echo "${MAIN_DOMAIN} did not resolve to ${EC2_HOST} in time."
+          exit 1
+
+      - name: Wait for SSH
+        run: |
+          mkdir -p ~/.ssh
+
+          for i in {1..45}; do
+            if ssh-keyscan -T 5 -H "${EC2_HOST}" >> ~/.ssh/known_hosts 2>/dev/null; then
+              echo "SSH is ready."
+              exit 0
+            fi
+
+            echo "Waiting for SSH... attempt ${i}/45"
+            sleep 10
+          done
+
+          echo "SSH did not become ready."
+          exit 1
+
+      - name: Setup main server
+        if: ${{ inputs.setup_server == 'true' || env.CREATED_INSTANCE == 'true' }}
+        run: |
+          ssh -i ~/.ssh/ec2_key ${SSH_OPTS} "${EC2_USER}@${EC2_HOST}" \
+            "MAIN_DEPLOY_PATH='${MAIN_DEPLOY_PATH}' MAIN_DOMAIN='${MAIN_DOMAIN}' ADMIN_DOMAIN='${ADMIN_DOMAIN}' LETSENCRYPT_EMAIL='${LETSENCRYPT_EMAIL}' bash -s" << 'REMOTE_EOF'
+          set -e
+
+          sudo apt-get update
+          sudo apt-get install -y nginx docker.io docker-compose-v2 git rsync certbot
+          sudo systemctl enable --now docker
+          sudo mkdir -p "${MAIN_DEPLOY_PATH}"
+
+          sudo tee /etc/nginx/sites-available/skillbridge-main > /dev/null << NGINX_MAIN
+          server {
+              listen 80;
+              server_name ${MAIN_DOMAIN};
+
+              root ${MAIN_DEPLOY_PATH};
+              index index.html;
+              client_max_body_size 120m;
+
+              location /api/ {
+                  proxy_pass http://127.0.0.1:8002;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade \$http_upgrade;
+                  proxy_set_header Connection "upgrade";
+                  proxy_read_timeout 86400;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+
+              location = /admin {
+                  return 301 https://${ADMIN_DOMAIN}/;
+              }
+
+              location /admin/ {
+                  rewrite ^/admin/(.*)\$ https://${ADMIN_DOMAIN}/\$1 permanent;
+              }
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+          }
+          NGINX_MAIN
+
+          sudo ln -sf /etc/nginx/sites-available/skillbridge-main /etc/nginx/sites-enabled/skillbridge-main
+          sudo rm -f /etc/nginx/sites-enabled/about-page
+          sudo rm -f /etc/nginx/sites-enabled/default
+          sudo nginx -t
+          sudo systemctl enable nginx
+          sudo systemctl restart nginx
+
+          sudo certbot certonly \
+            --webroot \
+            --webroot-path "${MAIN_DEPLOY_PATH}" \
+            --domains "${MAIN_DOMAIN}" \
+            --non-interactive \
+            --agree-tos \
+            --email "${LETSENCRYPT_EMAIL}"
+
+          sudo tee /etc/nginx/sites-available/skillbridge-main > /dev/null << NGINX_MAIN_SSL
+          server {
+              listen 80;
+              server_name ${MAIN_DOMAIN};
+
+              location ^~ /.well-known/acme-challenge/ {
+                  root ${MAIN_DEPLOY_PATH};
+              }
+
+              return 301 https://\$host\$request_uri;
+          }
+
+          server {
+              listen 443 ssl;
+              server_name ${MAIN_DOMAIN};
+
+              client_max_body_size 120m;
+
+              ssl_certificate /etc/letsencrypt/live/${MAIN_DOMAIN}/fullchain.pem;
+              ssl_certificate_key /etc/letsencrypt/live/${MAIN_DOMAIN}/privkey.pem;
+
+              location /api/ {
+                  proxy_pass http://127.0.0.1:8002;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade \$http_upgrade;
+                  proxy_set_header Connection "upgrade";
+                  proxy_read_timeout 86400;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+
+              location = /admin {
+                  return 301 https://${ADMIN_DOMAIN}/;
+              }
+
+              location /admin/ {
+                  rewrite ^/admin/(.*)\$ https://${ADMIN_DOMAIN}/\$1 permanent;
+              }
+
+              location / {
+                  proxy_pass http://127.0.0.1:8080;
+                  proxy_http_version 1.1;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+          }
+          NGINX_MAIN_SSL
+
+          sudo nginx -t
+          sudo systemctl reload nginx
+          REMOTE_EOF
+
+      - name: Deploy main app and backend
+        env:
+          FRONTEND_DEPLOY_REF: ${{ inputs.frontend_ref }}
+          BACKEND_DEPLOY_REF: ${{ inputs.backend_ref }}
+        run: |
+          BACKEND_ENV_B64=""
+          if [ -n "${BACKEND_ENV_FILE}" ]; then
+            BACKEND_ENV_B64=$(printf '%s\n' "${BACKEND_ENV_FILE}" | base64 -w 0)
+          fi
+
+          GITHUB_DEPLOY_KEY_B64=""
+          if [ -n "${GITHUB_DEPLOY_KEY}" ]; then
+            GITHUB_DEPLOY_KEY_B64=$(printf '%s\n' "${GITHUB_DEPLOY_KEY}" | base64 -w 0)
+          fi
+
+          FRONTEND_DEPLOY_REF_B64=$(printf '%s' "${FRONTEND_DEPLOY_REF}" | base64 -w 0)
+          BACKEND_DEPLOY_REF_B64=$(printf '%s' "${BACKEND_DEPLOY_REF}" | base64 -w 0)
+
+          ssh -i ~/.ssh/ec2_key ${SSH_OPTS} "${EC2_USER}@${EC2_HOST}" \
+            "BACKEND_DEPLOY_PATH='${BACKEND_DEPLOY_PATH}' BACKEND_SOURCE_DEPLOY_PATH='${BACKEND_SOURCE_DEPLOY_PATH}' FRONTEND_SOURCE_DEPLOY_PATH='${FRONTEND_SOURCE_DEPLOY_PATH}' GITHUB_REPO_SSH_URL='${GITHUB_REPO_SSH_URL}' FRONTEND_DEPLOY_REF_B64='${FRONTEND_DEPLOY_REF_B64}' BACKEND_DEPLOY_REF_B64='${BACKEND_DEPLOY_REF_B64}' BACKEND_ENV_B64='${BACKEND_ENV_B64}' GITHUB_DEPLOY_KEY_B64='${GITHUB_DEPLOY_KEY_B64}' EC2_USER='${EC2_USER}' MAIN_DOMAIN='${MAIN_DOMAIN}' ADMIN_DOMAIN='${ADMIN_DOMAIN}' bash -s" << 'REMOTE_EOF'
+          set -e
+
+          FRONTEND_DEPLOY_REF=$(printf '%s' "${FRONTEND_DEPLOY_REF_B64}" | base64 -d)
+          BACKEND_DEPLOY_REF=$(printf '%s' "${BACKEND_DEPLOY_REF_B64}" | base64 -d)
+
+          if [ -z "${FRONTEND_DEPLOY_REF}" ] || [ -z "${BACKEND_DEPLOY_REF}" ]; then
+            echo "Frontend and backend refs must not be empty."
+            exit 1
+          fi
+
+          sudo apt-get update
+          sudo apt-get install -y git docker.io docker-compose-v2 rsync
+          sudo systemctl enable --now docker
+
+          if [ ! -f /swapfile ]; then
+            sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
+            sudo chmod 600 /swapfile
+            sudo mkswap /swapfile
+          fi
+
+          if ! swapon --show=NAME | grep -q '^/swapfile$'; then
+            sudo swapon /swapfile
+          fi
+
+          mkdir -p "${HOME}/.ssh"
+          chmod 700 "${HOME}/.ssh"
+          ssh-keyscan -H github.com >> "${HOME}/.ssh/known_hosts" 2>/dev/null || true
+
+          if [ -n "${GITHUB_DEPLOY_KEY_B64}" ]; then
+            printf '%s' "${GITHUB_DEPLOY_KEY_B64}" | base64 -d > "${HOME}/.ssh/github_deploy_key"
+            chmod 600 "${HOME}/.ssh/github_deploy_key"
+
+            printf '%s\n' \
+              "Host github.com" \
+              "  HostName github.com" \
+              "  User git" \
+              "  IdentityFile ${HOME}/.ssh/github_deploy_key" \
+              "  IdentitiesOnly yes" \
+              > "${HOME}/.ssh/config"
+
+            chmod 600 "${HOME}/.ssh/config"
+            export GIT_SSH_COMMAND="ssh -i ${HOME}/.ssh/github_deploy_key -o IdentitiesOnly=yes"
+          fi
+
+          checkout_repository() {
+            CHECKOUT_PATH="$1"
+            CHECKOUT_REF="$2"
+
+            if [ ! -d "${CHECKOUT_PATH}/.git" ]; then
+              sudo rm -rf "${CHECKOUT_PATH}"
+              sudo mkdir -p "${CHECKOUT_PATH}"
+              sudo chown -R "${EC2_USER}:${EC2_USER}" "${CHECKOUT_PATH}"
+              git clone "${GITHUB_REPO_SSH_URL}" "${CHECKOUT_PATH}"
+            fi
+
+            cd "${CHECKOUT_PATH}"
+            git remote set-url origin "${GITHUB_REPO_SSH_URL}"
+
+            if [ -f "${HOME}/.ssh/github_deploy_key" ]; then
+              git config core.sshCommand "ssh -i ${HOME}/.ssh/github_deploy_key -o IdentitiesOnly=yes"
+            fi
+
+            # These directories are disposable source checkouts. Remove files
+            # left by earlier deployments so switching refs is deterministic.
+            git reset --hard HEAD
+            git clean -fd
+
+            if printf '%s\n' "${CHECKOUT_REF}" | grep -q '^refs/heads/'; then
+              DEPLOY_BRANCH="${CHECKOUT_REF#refs/heads/}"
+              git fetch origin "${DEPLOY_BRANCH}"
+              git checkout -B "${DEPLOY_BRANCH}" "origin/${DEPLOY_BRANCH}"
+            elif git ls-remote --exit-code --heads origin "${CHECKOUT_REF}" >/dev/null 2>&1; then
+              git fetch origin "${CHECKOUT_REF}"
+              git checkout -B "${CHECKOUT_REF}" "origin/${CHECKOUT_REF}"
+            else
+              git fetch origin "${CHECKOUT_REF}"
+              git checkout --detach FETCH_HEAD
+            fi
+          }
+
+          checkout_repository "${BACKEND_SOURCE_DEPLOY_PATH}" "${BACKEND_DEPLOY_REF}"
+
+          sudo mkdir -p "${BACKEND_DEPLOY_PATH}"
+          sudo rsync -a --delete "${BACKEND_SOURCE_DEPLOY_PATH}/skillbridge-be/" "${BACKEND_DEPLOY_PATH}/"
+          sudo chown -R "${EC2_USER}:${EC2_USER}" "${BACKEND_DEPLOY_PATH}"
+
+          if [ -n "${BACKEND_ENV_B64}" ]; then
+            printf '%s' "${BACKEND_ENV_B64}" | base64 -d > "${BACKEND_DEPLOY_PATH}/.env"
+          elif [ ! -f "${BACKEND_DEPLOY_PATH}/.env" ]; then
+            cat > "${BACKEND_DEPLOY_PATH}/.env" << 'BACKEND_ENV'
+          DEBUG=False
+          ENV=deployment
+          DOMAIN=http://localhost:8002
+          MYSQL_USER=mysql
+          MYSQL_PASSWORD=mypassword
+          MYSQL_HOSTNAME=skillbridge-mysql
+          MYSQL_PORT=3306
+          MYSQL_DATABASE=skillbridge_be
+          MYSQL_ROOT_PASSWORD=mypassword
+          MYSQL_POOL_SIZE=20
+          MYSQL_MAX_OVERFLOW=10
+          SECRET_KEY=change-this-secret-in-github-secrets
+          STORAGE_DRIVER=disc
+          BACKEND_CORS_ORIGINS=[]
+          BACKEND_ENV
+          fi
+
+          # These are the two browser origins served by this deployment. Keep
+          # them authoritative even when the secret contains a stale/empty value.
+          sed -i '/^BACKEND_CORS_ORIGINS=/d' "${BACKEND_DEPLOY_PATH}/.env"
+          printf 'BACKEND_CORS_ORIGINS=["https://%s","https://%s"]\n' \
+            "${MAIN_DOMAIN}" "${ADMIN_DOMAIN}" >> "${BACKEND_DEPLOY_PATH}/.env"
+
+          checkout_repository "${FRONTEND_SOURCE_DEPLOY_PATH}" "${FRONTEND_DEPLOY_REF}"
+          cd "${FRONTEND_SOURCE_DEPLOY_PATH}/skillbridge-fe"
+          sudo docker compose up -d --build
+
+          cd "${BACKEND_DEPLOY_PATH}"
+          if ! sudo docker compose up -d --build --wait --wait-timeout 180; then
+            sudo docker compose ps
+            sudo docker compose logs --tail=200 app
+            exit 1
+          fi
+
+          if ! curl --fail --silent --show-error \
+            --retry 12 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            "http://127.0.0.1:8002/api/v1/role/roles/" > /dev/null; then
+            sudo docker compose ps
+            sudo docker compose logs --tail=200 app
+            exit 1
+          fi
+
+          sudo docker system prune -af || true
+          sudo nginx -t
+          sudo systemctl reload nginx
+          REMOTE_EOF
+
+      - name: Verify main domain
+        run: |
+          curl --fail --silent --show-error \
+            --retry 12 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            "https://${MAIN_DOMAIN}/" | grep -q '<title>SkillbridgeFe</title>'
+
+          curl --fail --silent --show-error \
+            --retry 12 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            "https://${MAIN_DOMAIN}/api/v1/role/roles/" > /dev/null
+
+          CORS_HEADERS=$(curl --fail --silent --show-error \
+            --request OPTIONS \
+            --header "Origin: https://${ADMIN_DOMAIN}" \
+            --header "Access-Control-Request-Method: POST" \
+            --header "Access-Control-Request-Headers: content-type,authorization" \
+            --dump-header - \
+            --output /dev/null \
+            "https://${MAIN_DOMAIN}/api/v1/user/login/")
+
+          printf '%s\n' "${CORS_HEADERS}" | tr -d '\r' | \
+            grep -Fqi "access-control-allow-origin: https://${ADMIN_DOMAIN}"
+
+      - name: Print URLs
+        env:
+          FRONTEND_DEPLOY_REF: ${{ inputs.frontend_ref }}
+          BACKEND_DEPLOY_REF: ${{ inputs.backend_ref }}
+        run: |
+          echo "Website domain: https://${MAIN_DOMAIN}"
+          echo "API domain: https://${MAIN_DOMAIN}/api/v1"
+          echo "Admin domain: https://${ADMIN_DOMAIN}"
+          echo "Frontend ref: ${FRONTEND_DEPLOY_REF}"
+          echo "Backend ref: ${BACKEND_DEPLOY_REF}"
+          echo "EC2 Instance ID: ${INSTANCE_ID}"

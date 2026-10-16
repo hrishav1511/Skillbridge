@@ -1,0 +1,213 @@
+.app-nav {
+  background: linear-gradient(120deg, #1e1b4b 0%, #312e81 45%, #4338ca 100%);
+}
+
+.app-nav__link {
+  border-radius: 10px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  transition: background 0.18s ease, color 0.18s ease;
+
+  &:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+  &--active { background: rgba(255, 255, 255, 0.14); color: #fff; }
+}
+
+.app-nav__icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  transition: background 0.18s ease;
+
+  &:hover { background: rgba(255, 255, 255, 0.1); }
+}
+
+.mobile-only-controls {
+  display: none;
+}
+
+.mobile-menu-toggle {
+  display: inline-flex;
+}
+
+.app-nav__dot {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(49, 46, 129, 1);
+}
+
+.notification-menu { position: relative; }
+.notification-menu__toggle { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.notification-menu > label { cursor: pointer; }
+.notification-menu__tray {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  z-index: 20;
+  display: block;
+  width: 340px;
+  max-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-10px);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+  pointer-events: none;
+  transition: max-height 0.28s ease, opacity 0.2s ease, transform 0.28s ease, visibility 0s linear 0.28s;
+}
+.notification-menu__toggle:checked ~ .notification-menu__tray { max-height: 500px; visibility: visible; opacity: 1; transform: translateY(0); pointer-events: auto; transition-delay: 0s; }
+.notification-menu__heading { display: flex; justify-content: space-between; padding: 1rem 1.1rem; border-bottom: 1px solid #eef2f7; font-size: 0.95rem; font-weight: 700; }
+.notification-menu__status { color: #4657c9; font-size: 0.7rem; font-weight: 700; }
+.notification-menu__item { display: flex; gap: 0.7rem; padding: 0.85rem 1.1rem; border-bottom: 1px solid #f1f5f9; color: inherit; text-decoration: none; }
+.notification-menu__item:hover { background: #f8fafc; }
+.notification-menu__list { max-height: 360px; overflow-y: auto; }
+.notification-menu__item-dot { flex: 0 0 7px; width: 7px; height: 7px; margin-top: 0.4rem; border-radius: 50%; background: #f59e0b; }
+.notification-menu__item span:last-child { display: flex; min-width: 0; flex-direction: column; gap: 0.18rem; }
+.notification-menu__item strong { font-size: 0.78rem; }
+.notification-menu__item small { color: #64748b; font-size: 0.73rem; line-height: 1.35; }
+.notification-menu__item time { color: #94a3b8; font-size: 0.66rem; }
+.notification-menu__close { display: grid; width: 100%; height: 30px; place-items: center; border: 0; color: #94a3b8; background: #fff; cursor: pointer; }
+.notification-menu__close:hover { color: #4657c9; background: #f8fafc; }
+.notification-menu__close svg { width: 17px; height: 17px; }
+
+.app-nav__profile {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.3rem 0.55rem 0.3rem 0.3rem;
+  border-radius: 999px;
+  transition: background 0.18s ease;
+
+  &:hover { background: rgba(255, 255, 255, 0.1); }
+
+  img { outline: 2px solid rgba(255, 255, 255, 0.25); }
+}
+
+.student-profile-menu { position: relative; }
+.app-nav__avatar-fallback,
+.app-nav__mobile-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f59e0b;
+  color: #1e1b4b;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.app-nav__mobile-avatar { width: 30px; height: 30px; object-fit: cover; }
+.student-profile-tray {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  z-index: 30;
+  width: 300px;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.student-profile-tray--open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.student-profile-tray__identity { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.9rem; border-bottom: 1px solid #eef2f7; }
+.student-profile-tray__identity img,
+.student-profile-tray__avatar-fallback { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
+.student-profile-tray__avatar-fallback { display: grid; place-items: center; background: #e0e7ff; color: #3730a3; font-weight: 800; }
+.student-profile-tray__identity div { display: flex; min-width: 0; flex-direction: column; gap: 0.2rem; }
+.student-profile-tray__identity strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.student-profile-tray__identity span { overflow: hidden; color: #64748b; font-size: 0.75rem; text-overflow: ellipsis; white-space: nowrap; }
+.student-profile-tray__actions { display: grid; gap: 0.5rem; padding: 0.9rem 0; }
+.student-profile-tray__action,
+.student-profile-tray__remove,
+.student-profile-tray__signout { width: 100%; padding: 0.65rem 0.75rem; border: 1px solid #dbe3ef; border-radius: 9px; background: #fff; color: #334155; cursor: pointer; font: inherit; font-size: 0.8rem; font-weight: 700; text-align: left; }
+.student-profile-tray__action { border-color: #4657c9; background: #4657c9; color: #fff; text-align: center; }
+.student-profile-tray__action input { display: none; }
+.student-profile-tray__action.is-disabled,
+.student-profile-tray__remove:disabled { cursor: not-allowed; opacity: 0.55; }
+.student-profile-tray__remove:hover:not(:disabled) { background: #f8fafc; }
+.student-profile-tray__signout { border: 0; border-top: 1px solid #eef2f7; border-radius: 0; padding: 0.8rem 0 0; color: #dc2626; }
+.student-profile-tray__guest { margin: 0; padding: 0.9rem 0; color: #64748b; font-size: 0.78rem; }
+.student-profile-menu--mobile { display: none; }
+
+.app-nav__profile-meta { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
+.app-nav__profile-name { font-size: 0.85rem; font-weight: 600; color: #fff; }
+.app-nav__profile-role { font-size: 0.72rem; color: rgba(255, 255, 255, 0.6); }
+
+.student-mobile-menu {
+  display: none;
+  padding: 8px 16px 14px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.student-mobile-menu a,
+.student-mobile-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, .75);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+}
+
+.student-mobile-menu a:hover,
+.student-mobile-menu button:hover,
+.student-mobile-menu__link--active {
+  background: rgba(255, 255, 255, .12) !important;
+  color: #fff !important;
+}
+
+@media (max-width: 767px) {
+  .mobile-only-controls { display: flex; }
+  .student-profile-menu--mobile { display: block; }
+  .student-profile-menu--mobile .student-profile-tray { position: fixed; top: 4.5rem; right: 1rem; width: min(300px, calc(100vw - 2rem)); }
+  .student-mobile-menu { display: block; }
+}
+/* Unread conversations badge on the Messages tab.
+   Counts conversations, not messages: the question it answers is "how many
+   people are waiting on me". */
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: super;
+}

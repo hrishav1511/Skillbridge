@@ -1,0 +1,79 @@
+$bg:           #f5f3fb;
+$surface:      #ffffff;
+$sidebar-bg:   #efeaf8;
+$text:         #1f1b2e;
+$muted:        #8b86a0;
+$border:       #ece9f3;
+
+$purple-900:   #2b1d57;
+$purple-700:   #4b3a8f;
+$purple-500:   #7c6ae0;
+$purple-300:   #b9aef0;
+$purple-100:   #e6e0fa;
+
+$lilac:        #d9d2f5;
+$peach:        #ffe1d2;
+$pink:         #ffd9e3;
+$mint:         #d8f1e2;
+
+$up:           #2fae66;
+$up-bg:        #d8f1e2;
+$down:         #ef5b6b;
+$down-bg:      #ffd9e0;
+
+$radius:       18px;
+$radius-sm:    12px;
+$shadow:       0 4px 20px rgba(35, 25, 80, .04);
+.topbar {
+  display: flex; align-items: center; min-height: 48px;
+
+  &__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__eyebrow {
+    color: $purple-500;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    color: $text;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  &__right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 18px;
+  }
+  &__link { color: $text; font-weight: 500; }
+}
+
+.icon-btn {
+  position: relative;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: $surface;
+  display: grid; place-items: center;
+  box-shadow: $shadow;
+
+  .dot {
+    position: absolute; top: 8px; right: 9px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: $down;
+  }
+}
+
+.avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $purple-300, $purple-500);
+  border: 2px solid #fff;
+  box-shadow: $shadow;
+}

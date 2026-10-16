@@ -1,0 +1,19 @@
+<div class="app-shell">
+  <div class="app-shell__content">
+    <router-outlet></router-outlet>
+  </div>
+
+  <footer class="app-footer">
+    <p>Fulda University of Applied Sciences · Software Engineering Project · Summer 2026</p>
+    <p class="app-footer__notice">For Demonstration Only</p>
+  </footer>
+</div>
+
+<app-notification-popup></app-notification-popup>
+<!-- 
+<app-loading
+  [state]="(loadingState$ | async) || LoadingState.IDLE">
+</app-loading> -->
+<app-loading
+  [state]="loadingState$ | async">
+</app-loading>

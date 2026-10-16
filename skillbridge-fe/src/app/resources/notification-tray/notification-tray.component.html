@@ -1,0 +1,41 @@
+<section class="notifications-page" aria-labelledby="notifications-title">
+  <header class="notifications-page__header">
+    <div>
+      <p class="notifications-page__eyebrow">Account activity</p>
+      <h1 id="notifications-title">Notifications</h1>
+      <p>Updates related to your account and tutoring activity.</p>
+    </div>
+    <button type="button" class="mark-read-button" (click)="markAllAsRead()" [disabled]="!unreadCount">
+      Mark all as read
+    </button>
+  </header>
+
+  <div class="notifications-page__tabs" role="tablist" aria-label="Notification filters">
+    <button type="button" [class.is-active]="!unreadOnly" (click)="setUnreadOnly(false)">All</button>
+    <button type="button" [class.is-active]="unreadOnly" (click)="setUnreadOnly(true)">
+      Unread <span *ngIf="unreadCount">{{ unreadCount }}</span>
+    </button>
+  </div>
+
+  <div class="notifications-page__panel">
+    <div class="notifications-state" *ngIf="loading">Loading notifications...</div>
+    <div class="notifications-state" *ngIf="!loading && isGuest">Sign in to view your notifications.</div>
+    <div class="notifications-state" *ngIf="!loading && !isGuest && !notifications.length">
+      {{ unreadOnly ? 'You have no unread notifications.' : 'You have no notifications yet.' }}
+    </div>
+
+    <div class="notifications-list" *ngIf="!loading && !isGuest && notifications.length">
+      <button type="button" class="notification-item" [class.notification-item--unread]="!notification.is_read"
+        *ngFor="let notification of notifications" (click)="openNotification(notification)"
+        [class.notification-item--navigable]="isNavigable(notification)">
+        <span class="notification-item__indicator" aria-hidden="true"></span>
+        <span class="notification-item__content">
+          <strong>{{ notification.title }}</strong>
+          <span>{{ notification.message }}</span>
+          <time>{{ notification.created_at | date: 'medium' }}</time>
+        </span>
+        <span class="notification-item__state">{{ notification.is_read ? 'Read' : 'New' }}</span>
+      </button>
+    </div>
+  </div>
+</section>

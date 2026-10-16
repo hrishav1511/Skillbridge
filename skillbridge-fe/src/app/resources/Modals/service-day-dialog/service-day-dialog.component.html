@@ -1,0 +1,38 @@
+<div class="day-dialog" role="dialog" aria-modal="true" aria-labelledby="service-day-title">
+  <header class="day-dialog__header">
+    <div class="day-dialog__icon" aria-hidden="true">
+      <i class="bi bi-calendar-event"></i>
+    </div>
+    <div>
+      <p class="day-dialog__eyebrow">Schedule</p>
+      <h2 id="service-day-title">{{ data.date | date:'EEEE, MMM d, y' }}</h2>
+    </div>
+    <button type="button" class="day-dialog__close" (click)="close()" aria-label="Close day schedule">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </header>
+
+  <div class="day-dialog__body">
+    <p class="day-dialog__message">
+      {{ services.length }} {{ services.length === 1 ? 'service' : 'services' }} scheduled.
+      Select one to open it.
+    </p>
+
+    <ul class="day-dialog__list">
+      <li *ngFor="let service of services">
+        <button type="button" class="day-service" (click)="select(service)">
+          <span class="day-service__time">{{ timeRange(service) }}</span>
+          <span class="day-service__body">
+            <strong>{{ serviceName(service) }}</strong>
+            <small *ngIf="status(service)">{{ status(service) }}</small>
+          </span>
+          <i class="bi bi-chevron-right" aria-hidden="true"></i>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <footer class="day-dialog__footer">
+    <button type="button" class="day-dialog__back" (click)="close()">Close</button>
+  </footer>
+</div>

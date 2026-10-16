@@ -1,0 +1,60 @@
+<div class="reschedule-dialog" role="dialog" aria-modal="true" aria-labelledby="reschedule-dialog-title">
+  <header class="reschedule-dialog__header">
+    <div class="reschedule-dialog__icon" aria-hidden="true">
+      <i class="bi bi-calendar-event"></i>
+    </div>
+    <div>
+      <p class="reschedule-dialog__eyebrow">Service action</p>
+      <h2 id="reschedule-dialog-title">Propose a new time</h2>
+    </div>
+    <button type="button" class="reschedule-dialog__close" (click)="close()" aria-label="Close reschedule dialog">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </header>
+
+  <div class="reschedule-dialog__body">
+    <p class="reschedule-dialog__message" *ngIf="data.serviceName">
+      Proposing a new time for <strong>{{ data.serviceName }}</strong>. The other party has to accept it.
+    </p>
+    <p class="reschedule-dialog__message" *ngIf="!data.serviceName">
+      Pick a new date and time. The other party has to accept it before the service moves.
+    </p>
+
+    <div class="reschedule-dialog__grid">
+      <div>
+        <label class="reschedule-dialog__label" for="reschedule-date">New date</label>
+        <input
+          id="reschedule-date"
+          type="date"
+          [(ngModel)]="date"
+          (blur)="touched = true"
+          [attr.min]="minDate" />
+      </div>
+
+      <div>
+        <label class="reschedule-dialog__label" for="reschedule-time">New time</label>
+        <input
+          id="reschedule-time"
+          type="time"
+          [(ngModel)]="time"
+          (blur)="touched = true" />
+      </div>
+    </div>
+
+    <p class="reschedule-dialog__error" *ngIf="touched && !proposed">
+      Choose both a date and a time.
+    </p>
+
+    <p class="reschedule-dialog__error" *ngIf="touched && isPast">
+      Choose a date and time in the future.
+    </p>
+  </div>
+
+  <footer class="reschedule-dialog__footer">
+    <button type="button" class="reschedule-dialog__back" (click)="close()">Cancel</button>
+    <button type="button" class="reschedule-dialog__confirm" (click)="confirm()" [disabled]="!isValid">
+      <i class="bi bi-send"></i>
+      Send proposal
+    </button>
+  </footer>
+</div>

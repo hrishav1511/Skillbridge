@@ -1,0 +1,510 @@
+/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import 'ngx-toastr/toastr';
+@import "bootstrap-icons/font/bootstrap-icons.css";
+
+:root {
+  --review-bg: #ffffff;
+  --review-surface: #f8fafc;
+  --review-border: #e2e8f0;
+  --review-text: #0f172a;
+  --review-muted: #64748b;
+  --review-star: #cbd5e1;
+  --review-star-active: #f59e0b;
+  --review-badge-bg: #f1f5f9;
+  --review-primary: #43149e;
+  --review-primary-light: #6366f1;
+  --review-shadow: 0 10px 32px -16px rgba(15, 23, 42, 0.12);
+}
+
+html,
+body {
+  font-family: 'Manrope', sans-serif;
+  scroll-behavior: smooth;
+  height: 100%;
+  margin: 0;
+}
+
+* {
+  font-family: inherit;
+}
+
+
+/* ======================================
+   Angular CDK Dialog Global Styles
+====================================== */
+
+.cdk-overlay-container {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cdk-global-overlay-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  pointer-events: auto;
+}
+
+.cdk-overlay-pane {
+  max-width: 95vw;
+  max-height: 95vh;
+}
+
+.cdk-overlay-backdrop {
+  background: rgba(15, 23, 42, 0.45);
+
+  animation: backdropEnter 300ms ease forwards;
+}
+
+@keyframes backdropEnter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* SkillBridge Modal Card */
+
+.modal-container {
+  background: white;
+
+  border-radius: 12px;
+
+  padding: 2rem;
+
+  width: 700px;
+  max-width: 90vw;
+
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.15);
+
+  animation: modalIn 0.25s ease;
+}
+
+.skillbridge-drawer {
+  position: fixed !important;
+
+  top: 0;
+  right: 0;
+
+  height: 100vh;
+
+  margin: 0 !important;
+
+  animation: slideInDrawer .3s ease;
+}
+
+.profile-drawer {
+  position: fixed !important;
+  top: 4rem;
+  right: 0;
+
+  height: calc(100vh - 4rem) !important;
+  max-height: calc(100vh - 4rem) !important;
+
+  margin: 0 !important;
+
+  animation: slideInDrawer .3s ease;
+}
+
+.profile-drawer .cdk-dialog-container {
+  height: calc(100vh - 4rem) !important;
+}
+
+.chat-drawer .mat-mdc-dialog-container {
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+.chat-drawer {
+  position: fixed !important;
+  right: 0 !important;
+  top: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/*==================================================
+      SkillBridge Modern Toast Theme
+===================================================*/
+
+#toast-container {
+
+  top: 22px !important;
+  right: 22px !important;
+
+  .ngx-toastr {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 5px 5px 5px 11px !important;
+    border-radius: 5px !important;
+    background:rgb(51 47 139 / 56%) !important;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.1);
+    overflow: hidden;
+    background-image: none !important;
+    transition: 0.25s;
+  }
+
+  .ngx-toastr:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow:
+      0 22px 55px rgba(15, 23, 42, .16);
+  }
+
+}
+
+/*==================================================
+                ICON
+===================================================*/
+
+.toast-success::before,
+.toast-error::before,
+.toast-warning::before,
+.toast-info::before {
+
+  width: 52px;
+  height: 52px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 24px;
+
+  font-weight: 700;
+}
+
+/* SUCCESS */
+
+// .toast-success {
+
+//   border-left: 5px solid #22c55e !important;
+// }
+
+.toast-success::before {
+
+    content: "\F633";   // check-lg
+
+    font-family: "bootstrap-icons";
+
+    font-size: 24px;
+
+    color: #16a34a;
+}
+
+/* INFO */
+
+// .toast-info {
+
+//   border-left: 5px solid #3b82f6 !important;
+// }
+
+.toast-info::before {
+
+  content: "i";
+
+  color: #2563eb;
+
+  background: #eff6ff;
+
+  font-style: italic;
+
+  font-weight: 800;
+}
+
+/* WARNING */
+
+// .toast-warning {
+
+//   border-left: 5px solid #f59e0b !important;
+// }
+
+.toast-warning::before {
+
+  content: "!";
+
+  color: #d97706;
+
+  background: #fff7ed;
+}
+
+/* ERROR */
+
+// .toast-error {
+
+//   border-left: 5px solid #ef4444 !important;
+// }
+
+.toast-error::before {
+
+  content: "✕";
+
+  color: #dc2626;
+
+  background: #fef2f2;
+}
+
+/*==================================================
+              TITLE
+===================================================*/
+
+.toast-title {
+
+  font-size: 16px !important;
+
+  font-weight: 700 !important;
+
+  letter-spacing: .08em;
+
+  text-transform: uppercase;
+
+  // color: #111827 !important;
+
+  margin-bottom: 6px;
+}
+
+/*==================================================
+             MESSAGE
+===================================================*/
+
+.toast-message {
+
+  // color: #6b7280 !important;
+
+  font-size: 17px !important;
+
+  line-height: 1.6;
+}
+
+/*==================================================
+            CLOSE BUTTON
+===================================================*/
+
+.toast-close-button {
+
+  position: absolute !important;
+
+  top: 14px;
+
+  right: 16px;
+
+  color: #94a3b8 !important;
+
+  font-size: 18px !important;
+
+  opacity: 1 !important;
+
+  text-shadow: none !important;
+
+  transition: .25s;
+}
+
+.toast-close-button:hover {
+
+  color: #111827 !important;
+
+  transform: rotate(90deg);
+}
+
+/*==================================================
+          PROGRESS BAR
+===================================================*/
+
+.toast-progress {
+
+  height: 4px !important;
+
+  opacity: 1 !important;
+
+  background: linear-gradient(90deg,
+      #6366f1,
+      #8b5cf6) !important;
+}
+
+/*==================================================
+          REMOVE DEFAULT ICON
+===================================================*/
+
+.toast-success,
+.toast-error,
+.toast-warning,
+.toast-info {
+
+  background-image: none !important;
+}
+
+/*==================================================
+            ANIMATION
+===================================================*/
+
+.ngx-toastr {
+
+  animation: toastSlide .28s ease;
+}
+
+@keyframes toastSlide {
+
+  from {
+
+    opacity: 0;
+
+    transform:
+      translateX(35px) scale(.96);
+  }
+
+  to {
+
+    opacity: 1;
+
+    transform: none;
+  }
+
+}
+
+
+/*=========================================================
+                    Global Scrollbar
+=========================================================*/
+
+$scrollbar-size: 10px;
+
+$scrollbar-track: #f8fafc;
+$scrollbar-thumb: #cbd5e1;
+$scrollbar-thumb-hover: #94a3b8;
+$scrollbar-thumb-active: #64748b;
+
+* {
+
+    scrollbar-width: thin;
+    scrollbar-color: $scrollbar-thumb $scrollbar-track;
+
+    &::-webkit-scrollbar {
+
+        width: $scrollbar-size;
+        height: $scrollbar-size;
+    }
+
+    &::-webkit-scrollbar-track {
+
+        background: $scrollbar-track;
+
+        border-radius: 999px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+
+        background: linear-gradient(
+            180deg,
+            lighten($scrollbar-thumb, 4%),
+            darken($scrollbar-thumb, 8%)
+        );
+
+        border-radius: 999px;
+
+        border: 2px solid $scrollbar-track;
+
+        transition: .25s ease;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+
+        background: linear-gradient(
+            180deg,
+            lighten($scrollbar-thumb-hover, 4%),
+            darken($scrollbar-thumb-hover, 8%)
+        );
+    }
+
+    &::-webkit-scrollbar-thumb:active {
+
+        background: $scrollbar-thumb-active;
+    }
+
+    &::-webkit-scrollbar-corner {
+
+        background: transparent;
+    }
+
+}
+
+
+.app-backdrop {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(15, 23, 42, 0.35);
+
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+
+    z-index: 999;
+
+    animation: backdropFade .25s ease;
+}
+
+@keyframes backdropFade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Disable scrolling when a modal is open */
+
+body.modal-open {
+    overflow: hidden;
+    touch-action: none;
+}
+
+/* Optional: prevent accidental text selection */
+
+body.modal-open * {
+    user-select: none;
+}
+
+/* Allow interaction inside the modal */
+
+.modal,
+.drawer-container,
+.cdk-overlay-pane,
+.dialog-container {
+    user-select: auto;
+}
+
+

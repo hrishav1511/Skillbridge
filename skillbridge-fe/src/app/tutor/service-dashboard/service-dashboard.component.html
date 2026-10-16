@@ -1,0 +1,176 @@
+<main class="service-dashboard">
+  <button type="button" class="back-link" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i>
+    Back to dashboard
+  </button>
+
+  <ng-container *ngIf="!loading && service; else loadingState">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Service dashboard</p>
+        <h1>{{ service.service_name || 'Service details' }}</h1>
+        <p class="page-subtitle">Keep track of this service and the students enrolled.</p>
+      </div>
+      <div class="service-status" [class.is-booked]="service.booking_id">
+        <i class="bi" [class.bi-check-circle-fill]="service.booking_id" [class.bi-calendar-event]="!service.booking_id"></i>
+        {{ service.booking_id ? 'Booked service' : 'Available service' }}
+      </div>
+    </header>
+
+    <section class="dashboard-grid">
+      <div class="main-column">
+        <section class="panel detail-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Overview</p>
+              <h2>Service details</h2>
+            </div>
+            <span class="detail-icon"><i class="bi bi-journal-text"></i></span>
+          </div>
+
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label"><i class="bi bi-calendar3"></i> Date</span>
+              <strong>{{ serviceDate() | date:'EEEE, MMM d, y' }}</strong>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label"><i class="bi bi-clock"></i> Time</span>
+              <strong>{{ timeRange() }}</strong>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label"><i class="bi bi-bar-chart"></i> Level</span>
+              <strong>{{ service.level || 'All levels' }}</strong>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label"><i class="bi bi-currency-euro"></i> Price</span>
+              <strong>€{{ service.price || 0 }} <small>per service</small></strong>
+            </div>
+          </div>
+
+          <div class="description" *ngIf="service.description">
+            <span class="detail-label">About this service</span>
+            <p>{{ service.description }}</p>
+          </div>
+        </section>
+
+        <section class="panel media-panel" *ngIf="serviceMedia().length">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Service media</p>
+              <h2>Service materials</h2>
+            </div>
+            <span class="detail-icon"><i class="bi bi-images"></i></span>
+          </div>
+
+          <div class="media-stage" *ngIf="currentMedia() as media">
+            <button type="button" class="media-nav media-nav--prev" (click)="moveMedia(-1)" aria-label="Previous media">‹</button>
+            <div class="media-main">
+              <img *ngIf="media.type === 'image'" [src]="media.url" [alt]="service.service_name" />
+              <video *ngIf="media.type === 'video'" [src]="media.url" controls playsinline></video>
+            </div>
+            <button type="button" class="media-nav media-nav--next" (click)="moveMedia(1)" aria-label="Next media">›</button>
+          </div>
+
+          <div class="media-thumbnails" *ngIf="serviceMedia().length > 1">
+            <button type="button" class="media-thumbnail" *ngFor="let media of serviceMedia(); let i = index" [class.is-active]="currentMediaIndex === i" (click)="setMedia(i)">
+              <img *ngIf="media.type === 'image'" [src]="media.url" [alt]="service.service_name" />
+              <video *ngIf="media.type === 'video'" [src]="media.url" playsinline></video>
+            </button>
+          </div>
+        </section>
+
+        <section class="panel students-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Attendance</p>
+              <h2>Students enrolled</h2>
+            </div>
+            <div class="enrollment-count">
+              <strong>{{ enrolledStudents.length }}</strong>
+              <span>{{ enrolledStudents.length === 1 ? 'student' : 'students' }}</span>
+            </div>
+          </div>
+
+          <div class="students-empty" *ngIf="enrolledLoading">
+            <span class="empty-icon"><i class="bi bi-people"></i></span>
+            <div>
+              <strong>Loading enrolled students…</strong>
+            </div>
+          </div>
+
+          <ul class="students-list" *ngIf="!enrolledLoading && enrolledStudents.length">
+            <li class="student-row" *ngFor="let booking of enrolledStudents">
+              <img
+                *ngIf="studentPicture(booking)"
+                class="student-avatar"
+                [src]="studentPicture(booking)"
+                [alt]="studentName(booking)" />
+              <span class="student-avatar student-avatar--empty" *ngIf="!studentPicture(booking)">
+                <i class="bi bi-person"></i>
+              </span>
+              <div class="student-meta">
+                <strong>{{ studentName(booking) }}</strong>
+                <span>Enrolled</span>
+              </div>
+            </li>
+          </ul>
+
+          <div class="students-empty" *ngIf="!enrolledLoading && !enrolledStudents.length">
+            <span class="empty-icon"><i class="bi bi-people"></i></span>
+            <div>
+              <strong>No students enrolled yet</strong>
+              <p>Students appear here once you accept their service request.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="panel reviews-panel">
+        <div class="panel-heading reviews-heading">
+          <div>
+            <p class="section-kicker">Feedback</p>
+            <h2>Service reviews</h2>
+          </div>
+          <span class="rating-summary"><i class="bi bi-star-fill"></i> {{ reviewAverage() }}</span>
+        </div>
+
+        <div class="review-summary">
+          <strong>{{ reviews.length }}</strong>
+          <span>{{ reviews.length === 1 ? 'review' : 'reviews' }} from students</span>
+        </div>
+
+        <div class="review-list" *ngIf="reviews.length; else noReviews">
+          <article class="review-card" *ngFor="let review of reviews">
+            <div class="review-card__header">
+              <span class="review-avatar">{{ initials(review.student?.full_name) }}</span>
+              <div>
+                <strong>{{ review.student?.full_name || 'Anonymous student' }}</strong>
+                <div class="stars">
+                  <i class="bi bi-star-fill" *ngFor="let star of reviewStars(review.rating)"></i>
+                </div>
+              </div>
+              <time>{{ review.created_at | date:'mediumDate' }}</time>
+            </div>
+            <p>“{{ review.comment }}”</p>
+          </article>
+        </div>
+
+        <ng-template #noReviews>
+          <div class="reviews-empty">
+            <span><i class="bi bi-chat-square-heart"></i></span>
+            <strong>No reviews yet</strong>
+            <p>Student feedback will appear here after your services.</p>
+          </div>
+        </ng-template>
+      </aside>
+    </section>
+  </ng-container>
+
+  <ng-template #loadingState>
+    <section class="state-panel">
+      <i class="bi" [class.bi-arrow-repeat]="loading" [class.bi-exclamation-circle]="!loading"></i>
+      <h2>{{ loading ? 'Loading service dashboard' : 'Service unavailable' }}</h2>
+      <p>{{ errorMessage || 'Please wait a moment.' }}</p>
+    </section>
+  </ng-template>
+</main>

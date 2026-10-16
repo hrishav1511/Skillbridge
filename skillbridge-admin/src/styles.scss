@@ -1,0 +1,124 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import '@angular/cdk/overlay-prebuilt.css';
+$font-sans: "DM Sans", sans-serif;
+
+
+body {
+  font-family: $font-sans;
+  background: #f5f3fb;
+  color: #1f1b2e;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4 {
+  font-family: "Space Grotesk", $font-sans;
+}
+$bg:           #f5f3fb;
+$surface:      #ffffff;
+$sidebar-bg:   #efeaf8;
+$text:         #1f1b2e;
+$muted:        #8b86a0;
+$border:       #ece9f3;
+
+$purple-900:   #2b1d57;
+$purple-700:   #4b3a8f;
+$purple-500:   #7c6ae0;
+$purple-300:   #b9aef0;
+$purple-100:   #e6e0fa;
+
+$lilac:        #d9d2f5;
+$peach:        #ffe1d2;
+$pink:         #ffd9e3;
+$mint:         #d8f1e2;
+
+$up:           #2fae66;
+$up-bg:        #d8f1e2;
+$down:         #ef5b6b;
+$down-bg:      #ffd9e0;
+
+$radius:       18px;
+$radius-sm:    12px;
+$shadow:       0 4px 20px rgba(35, 25, 80, .04);
+
+.approval-dialog{
+
+    .cdk-dialog-container{
+        padding:0 !important;
+        border:none !important;
+    max-height:90vh !important;
+        background:transparent !important;
+        box-shadow:none !important;
+    overflow:hidden !important;
+    }
+}
+
+
+.cdk-overlay-backdrop{
+    background:rgba(17,24,39,.55) !important;
+    backdrop-filter:blur(6px);
+}
+.skillbridge-modal {
+
+  background: #ffffff;
+
+  border-radius: 28px;
+
+  width: 520px;
+  max-width: 90vw;
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 42px;
+
+  position: relative;
+
+  box-shadow:
+    0 30px 80px rgba(25, 30, 60, .18);
+
+  animation: modalPopup .25s ease;
+}
+
+.skillbridge-modal-lg {
+
+  width: 700px;
+  max-width: 90vw;
+}
+
+.skillbridge-modal-sm {
+
+  width: 420px;
+  max-width: 90vw;
+}
+
+@keyframes modalPopup {
+
+  from {
+
+    opacity: 0;
+
+    transform: scale(.92);
+
+  }
+
+  to {
+
+    opacity: 1;
+
+    transform: scale(1);
+
+  }
+
+}

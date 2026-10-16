@@ -1,0 +1,187 @@
+$surface: #ffffff;
+$border:  #e6e8ef;
+$text:    #0f172a;
+$muted:   #64748b;
+$primary: #4f46e5;
+
+.requests-page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+  color: $text;
+}
+
+.requests-header { margin-bottom: 18px; }
+
+.requests-back {
+  margin-bottom: 14px;
+  padding: 6px 11px;
+  border: 1px solid $border;
+  border-radius: 9px;
+  background: $surface;
+  color: $muted;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { border-color: $primary; background: #eef0fe; color: $primary; }
+}
+
+.requests-eyebrow {
+  margin: 0 0 4px;
+  color: $muted;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.requests-header h1 { margin: 0; font-size: 24px; }
+.requests-sub { margin: 6px 0 0; color: $muted; font-size: 13px; }
+
+.requests-filters {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.requests-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  span {
+    color: $muted;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+
+  select {
+    min-width: 172px;
+    padding: 8px 10px;
+    border: 1px solid $border;
+    border-radius: 9px;
+    background: $surface;
+    color: inherit;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  select:focus { border-color: $primary; outline: none; box-shadow: 0 0 0 3px #eef0fe; }
+}
+
+.requests-count { margin-left: auto; padding-bottom: 9px; color: $muted; font-size: 12.5px; }
+
+.requests-state {
+  padding: 22px;
+  border: 1px solid $border;
+  border-radius: 12px;
+  background: $surface;
+  color: $muted;
+  font-size: 13px;
+  text-align: center;
+}
+
+.requests-state--error { border-color: #f1c7c9; background: #fdf3f3; color: #b83b43; }
+
+.requests-list { display: flex; flex-direction: column; gap: 10px; }
+
+.request-card {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 14px 16px;
+  border: 1px solid $border;
+  border-radius: 12px;
+  background: $surface;
+}
+
+.request-card__icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 11px;
+  background: #eef0fe;
+  color: $primary;
+  font-size: 16px;
+}
+
+.request-card__body strong { font-size: 14px; }
+.request-card__body p { margin: 3px 0 0; color: $muted; font-size: 12.5px; }
+.request-card__proposal { color: #b45309 !important; }
+
+.request-card__status {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: $muted;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.request-card__status[data-status="ACCEPTED"] { background: #ecfdf5; color: #047857; }
+.request-card__status[data-status="PENDING"]  { background: #fffbeb; color: #b45309; }
+.request-card__status[data-status="DECLINED"],
+.request-card__status[data-status="CANCELLED"] { background: #fef2f2; color: #b91c1c; }
+
+.request-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  grid-column: 1 / -1;
+}
+
+.request-card__actions .btn {
+  padding: 7px 12px;
+  border: 1px solid $border;
+  border-radius: 9px;
+  background: $surface;
+  color: $muted;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.request-card__actions .btn:hover { border-color: $primary; background: #eef0fe; color: $primary; }
+.request-card__actions .btn-primary { border-color: $primary; background: $primary; color: #fff; }
+.request-card__actions .btn-primary:hover { background: #4338ca; color: #fff; }
+
+.requests-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px 0 0;
+
+  button {
+    padding: 7px 14px;
+    border: 1px solid $border;
+    border-radius: 9px;
+    background: $surface;
+    color: inherit;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  button:hover:not(:disabled) { border-color: $primary; background: #eef0fe; color: $primary; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+
+  span { color: $muted; font-size: 12.5px; }
+}
+
+@media (max-width: 640px) {
+  .request-card { grid-template-columns: auto minmax(0, 1fr); }
+  .requests-filter { flex: 1; }
+  .requests-filter select { width: 100%; min-width: 0; }
+}
