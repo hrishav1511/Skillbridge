@@ -1,3 +1,5 @@
+**This project was developed on a separate repository only accesible by univerty faculty and students, hence i have copied the project to my personal repository for being publically accesible.
+
 # SkillBridge
 It is an online learning platform that connects students with the most suitable teachers using AI-powered matching. Built with Angular, FastAPI, and MYSQL
 
